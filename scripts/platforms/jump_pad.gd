@@ -13,6 +13,10 @@ var accent := Color.WHITE
 var _chevrons: Array[MeshInstance3D] = []
 
 
+func is_animated() -> bool:
+	return true
+
+
 func get_jump_velocity() -> float:
 	return jump_velocity
 

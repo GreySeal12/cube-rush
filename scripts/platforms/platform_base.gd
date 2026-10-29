@@ -78,6 +78,12 @@ func is_deadly(_center: Vector3, _half: float, _t: float) -> bool:
 	return false
 
 
+## true si l'affichage change avec le temps (seuls ces éléments sont mis à
+## jour chaque image, pour économiser du temps de calcul).
+func is_animated() -> bool:
+	return false
+
+
 ## Met à jour l'affichage pour le temps t (appelé chaque image en jeu).
 func update_visual(_t: float) -> void:
 	pass

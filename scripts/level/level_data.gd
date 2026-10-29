@@ -53,11 +53,18 @@ func reset() -> void:
 		obs.reset()
 
 
+var _animated: Array[PlatformBase] = []
+var _animated_ready := false
+
+
 func update_visuals(t: float) -> void:
-	for plat in platforms:
-		plat.update_visual(t)
-	for obs in obstacles:
-		obs.update_visual(t)
+	if not _animated_ready:
+		for p in platforms + obstacles:
+			if p.is_animated():
+				_animated.append(p)
+		_animated_ready = true
+	for p in _animated:
+		p.update_visual(t)
 
 
 ## Distance « de Manhattan » parcourue depuis le départ pour atteindre p.
