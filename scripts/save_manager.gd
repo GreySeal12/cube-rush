@@ -37,6 +37,13 @@ func get_stars(level: int) -> int:
 	return int(stars.get(level, 0))
 
 
+func total_stars() -> int:
+	var sum := 0
+	for key in stars:
+		sum += int(stars[key])
+	return sum
+
+
 func is_unlocked(level: int) -> bool:
 	return level <= unlocked
 

@@ -14,8 +14,33 @@ func level_count() -> int:
 
 func start_level(n: int) -> void:
 	current_level = clampi(n, 1, level_count())
+	_change_scene(SCENE_GAME)
+
+
+func go_to_menu() -> void:
+	_change_scene(SCENE_MENU)
+
+
+func go_to_level_select() -> void:
+	_change_scene(SCENE_LEVEL_SELECT)
+
+
+func has_next_level(n: int) -> bool:
+	return n < level_count()
+
+
+## Niveau proposé par le bouton « Jouer » : le premier niveau débloqué
+## pas encore terminé, sinon le dernier niveau.
+func next_level_to_play() -> int:
+	for n in range(1, level_count() + 1):
+		if SaveManager.is_unlocked(n) and SaveManager.get_stars(n) == 0:
+			return n
+	return level_count()
+
+
+func _change_scene(path: String) -> void:
 	get_tree().paused = false
-	get_tree().change_scene_to_file(SCENE_GAME)
+	get_tree().change_scene_to_file.call_deferred(path)
 
 
 ## Règle des étoiles (simple et documentée) :

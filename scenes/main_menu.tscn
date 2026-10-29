@@ -1,0 +1,80 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1_menu"]
+[ext_resource type="Script" path="res://scripts/ui/mascot.gd" id="2_mascot"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_menu")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+
+[node name="Center" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 60.0
+offset_top = 80.0
+offset_right = -60.0
+offset_bottom = -80.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 28
+alignment = 1
+
+[node name="Mascot" type="Control" parent="Center"]
+custom_minimum_size = Vector2(0, 280)
+layout_mode = 2
+script = ExtResource("2_mascot")
+
+[node name="Title" type="Label" parent="Center"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 112
+text = "CUBE RUSH"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="Center"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 34
+text = "Un doigt. Dix niveaux. Zéro chute ?"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Spacer" type="Control" parent="Center"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+
+[node name="PlayButton" type="Button" parent="Center"]
+custom_minimum_size = Vector2(440, 150)
+layout_mode = 2
+size_flags_horizontal = 4
+focus_mode = 0
+theme_override_font_sizes/font_size = 68
+text = "JOUER"
+
+[node name="LevelsButton" type="Button" parent="Center"]
+custom_minimum_size = Vector2(440, 112)
+layout_mode = 2
+size_flags_horizontal = 4
+focus_mode = 0
+text = "NIVEAUX"
+
+[node name="Progress" type="Label" parent="Center"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0 / 30 étoiles"
+horizontal_alignment = 1

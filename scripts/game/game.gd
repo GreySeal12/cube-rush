@@ -14,6 +14,10 @@ const MAX_FRAME_TIME := 0.1
 @onready var environment: WorldEnvironment = $WorldEnvironment
 @onready var background: TextureRect = $Background/Gradient
 @onready var hud: Control = $HUD/Root
+@onready var pause_layer: CanvasLayer = $PauseMenu
+@onready var pause_menu: Control = $PauseMenu/Root
+@onready var complete_layer: CanvasLayer = $LevelComplete
+@onready var complete_menu: Control = $LevelComplete/Root
 
 var level_number := 1
 var level: LevelData
@@ -44,6 +48,14 @@ func _ready() -> void:
 	hud.set_level(level_number)
 	hud.set_deaths(deaths)
 	hud.show_hint(true)
+
+	hud.pause_pressed.connect(pause_game)
+	pause_menu.resume_requested.connect(resume_game)
+	pause_menu.restart_requested.connect(func() -> void: GameManager.start_level(level_number))
+	pause_menu.menu_requested.connect(GameManager.go_to_menu)
+	complete_menu.next_requested.connect(_on_next)
+	complete_menu.replay_requested.connect(func() -> void: GameManager.start_level(level_number))
+	complete_menu.menu_requested.connect(GameManager.go_to_level_select)
 
 
 func _apply_theme(theme: Dictionary) -> void:
@@ -145,5 +157,48 @@ func _on_win() -> void:
 	var stars := GameManager.compute_stars(deaths, level.config)
 	GameManager.on_level_completed(level_number, stars)
 	hud.show_hint(false)
+	hud.set_pause_visible(false)
 	await get_tree().create_timer(0.8).timeout
-	hud.show_complete(stars)
+	complete_layer.visible = true
+	complete_menu.present(stars, deaths, not GameManager.has_next_level(level_number))
+
+
+func _on_next() -> void:
+	if GameManager.has_next_level(level_number):
+		GameManager.start_level(level_number + 1)
+	else:
+		GameManager.go_to_menu()
+
+
+# ---------------------------------------------------------------------------
+# Pause
+# ---------------------------------------------------------------------------
+
+func pause_game() -> void:
+	if _finished or get_tree().paused:
+		return
+	get_tree().paused = true
+	pause_layer.visible = true
+
+
+func resume_game() -> void:
+	pause_layer.visible = false
+	get_tree().paused = false
+	# On ne rattrape pas le temps passé en pause.
+	_accumulator = 0.0
+
+
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_WM_GO_BACK_REQUEST:
+			# Bouton « retour » d'Android : pause, ou reprise si déjà en pause.
+			if get_tree().paused:
+				resume_game()
+			elif _finished:
+				GameManager.go_to_level_select()
+			else:
+				pause_game()
+		NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT:
+			# Appel entrant, appli en arrière-plan… : pause automatique en cours de partie.
+			if motor != null and motor.state == PlayerMotor.State.RUNNING:
+				pause_game()

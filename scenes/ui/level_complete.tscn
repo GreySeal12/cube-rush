@@ -1,0 +1,95 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/level_complete.gd" id="1_complete"]
+[ext_resource type="Script" path="res://scripts/ui/star_display.gd" id="2_stars"]
+
+[node name="LevelComplete" type="CanvasLayer"]
+process_mode = 3
+layer = 20
+visible = false
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_complete")
+
+[node name="Dim" type="ColorRect" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.08, 0.06, 0.2, 0.45)
+
+[node name="Panel" type="PanelContainer" parent="Root"]
+custom_minimum_size = Vector2(600, 0)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -360.0
+offset_right = 300.0
+offset_bottom = 360.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Column" type="VBoxContainer" parent="Root/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="Title" type="Label" parent="Root/Panel/Column"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 58
+text = "NIVEAU TERMINÉ !"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Stars" type="Control" parent="Root/Panel/Column"]
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+script = ExtResource("2_stars")
+star_size = 110.0
+spacing = 16.0
+
+[node name="Info" type="Label" parent="Root/Panel/Column"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Chutes : 0"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="NextButton" type="Button" parent="Root/Panel/Column"]
+custom_minimum_size = Vector2(0, 130)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 56
+text = "Suivant"
+
+[node name="Row" type="HBoxContainer" parent="Root/Panel/Column"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="ReplayButton" type="Button" parent="Root/Panel/Column/Row"]
+custom_minimum_size = Vector2(0, 104)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 38
+text = "Rejouer"
+
+[node name="MenuButton" type="Button" parent="Root/Panel/Column/Row"]
+custom_minimum_size = Vector2(0, 104)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 38
+text = "Niveaux"

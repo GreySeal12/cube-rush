@@ -46,6 +46,5 @@ func show_hint(on: bool) -> void:
 	_hint_time = 0.0
 
 
-func show_complete(_stars: int) -> void:
-	hint.text = "NIVEAU TERMINÉ !"
-	hint.visible = true
+func set_pause_visible(on: bool) -> void:
+	pause_button.visible = on

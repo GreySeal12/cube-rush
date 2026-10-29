@@ -8,7 +8,7 @@ config_version=5
 
 config/name="Cube Rush"
 config/description="Jeu d'arcade 3D low-poly : un cube kawaii, un doigt, dix niveaux."
-run/main_scene="res://scenes/game.tscn"
+run/main_scene="res://scenes/main_menu.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
 ; Le bouton « retour » d'Android est géré par le jeu (pause / retour au menu).
