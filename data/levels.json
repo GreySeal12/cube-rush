@@ -1,0 +1,16 @@
+{
+  "themes": {
+    "ciel": {
+      "bg_top": "#7cc8f8", "bg_bottom": "#e6f6ff", "ambient": "#c9dcf0",
+      "platform_a": "#5aa9e6", "platform_b": "#3f8fd8", "goal": "#ffffff"
+    }
+  },
+  "levels": [
+    {
+      "id": 1, "name": "Premiers pas", "theme": "ciel", "seed": 1101,
+      "speed": 3.5, "width": 3, "path_length": 60,
+      "segment_min": 5, "segment_max": 8,
+      "stars_max_deaths": [0, 3]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+# Dossiers générés par Godot
+.godot/
+.import/
+/android/
+*.tmp
+# Exports
+build/
+*.apk
+*.aab
+*.idsig
+export_credentials.cfg
+tools/dev/

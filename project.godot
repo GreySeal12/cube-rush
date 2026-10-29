@@ -1,0 +1,59 @@
+; Fichier de configuration du projet Godot.
+; Ne modifiez les valeurs ici que si vous savez ce que vous faites :
+; la plupart se règlent aussi dans Projet > Paramètres du projet.
+
+config_version=5
+
+[application]
+
+config/name="Cube Rush"
+config/description="Jeu d'arcade 3D low-poly : un cube kawaii, un doigt, dix niveaux."
+run/main_scene="res://scenes/game.tscn"
+config/features=PackedStringArray("4.7", "Mobile")
+config/icon="res://icon.svg"
+; Le bouton « retour » d'Android est géré par le jeu (pause / retour au menu).
+config/quit_on_go_back=false
+
+[autoload]
+
+SaveManager="*res://scripts/save_manager.gd"
+GameManager="*res://scripts/game_manager.gd"
+
+[display]
+
+; Résolution de référence en portrait. L'interface s'adapte aux autres ratios
+; grâce au mode d'étirement « canvas_items » + « expand ».
+window/size/viewport_width=720
+window/size/viewport_height=1280
+; Taille de la fenêtre sur PC (pour tester confortablement).
+window/size/window_width_override=405
+window/size/window_height_override=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+; 1 = portrait
+window/handheld/orientation=1
+
+[gui]
+
+common/drop_mouse_on_gui_input_disabled=true
+
+[input_devices]
+
+; Les touchers sont convertis en clics souris : un seul chemin d'entrée
+; pour PC et mobile, et les boutons de l'interface « consomment » le toucher.
+pointing/emulate_mouse_from_touch=true
+
+[physics]
+
+common/physics_ticks_per_second=60
+
+[rendering]
+
+renderer/rendering_method="mobile"
+renderer/rendering_method.mobile="mobile"
+; Si Vulkan n'est pas disponible sur le téléphone, Godot bascule sur OpenGL.
+rendering_device/fallback_to_opengl3=true
+textures/vram_compression/import_etc2_astc=true
+anti_aliasing/quality/msaa_3d=1
+lights_and_shadows/directional_shadow/size=1024
+environment/defaults/default_clear_color=Color(0.75, 0.9, 1, 1)
