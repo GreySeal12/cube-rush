@@ -58,13 +58,14 @@ static func generate(cfg: Dictionary, theme: Dictionary) -> LevelData:
 	var dir := DIR_X
 	var total := 0
 	var seg_index := 0
+	var gauges := {}
 	while true:
 		var length := rng.randi_range(seg_min, seg_max)
 		var feature := {"type": "none"}
 		if seg_index == 0:
 			length = maxi(length, 3)  # ligne droite d'élan, sans difficulté
 		else:
-			feature = _choose_feature(cfg, rng)
+			feature = _choose_feature(cfg, rng, gauges)
 			length = maxi(length, _feature_min_length(feature))
 		_build_segment(data, block, dir, length, feature, rng)
 		total += length + w
@@ -124,27 +125,38 @@ static func jump_velocity_for_gap(gap: int, speed: float) -> float:
 # Particularités des segments
 # ---------------------------------------------------------------------------
 
-## Tire au sort la particularité d'un segment selon les probabilités de la
-## configuration. Les mécaniques absentes de la config ne sont jamais tirées.
-static func _choose_feature(cfg: Dictionary, rng: RandomNumberGenerator) -> Dictionary:
+## Choisit la particularité d'un segment.
+##
+## Plutôt qu'un tirage indépendant à chaque segment (qui peut donner 0 trou
+## dans un niveau à « 50 % de trous »), chaque mécanique remplit une jauge de
+## `chance` (± 40 % d'aléa) à chaque segment ; quand une jauge dépasse 1, la
+## particularité apparaît et la jauge redescend. Résultat : la proportion
+## moyenne de segments concernés est bien `chance`, avec un rythme régulier
+## mais pas mécanique. Les mécaniques absentes de la config n'apparaissent jamais.
+static func _choose_feature(cfg: Dictionary, rng: RandomNumberGenerator, gauges: Dictionary) -> Dictionary:
 	var gaps: Dictionary = cfg.get("gaps", {})
 	var moving: Dictionary = cfg.get("moving", {})
 	var inter: Dictionary = cfg.get("intermittent", {})
 	var spikes: Dictionary = cfg.get("spikes", {})
-	var chances := [
-		["gap", float(gaps.get("chance", 0.0))],
-		["moving", float(moving.get("chance", 0.0))],
-		["intermittent", float(inter.get("chance", 0.0))],
-		["spikes", float(spikes.get("row_chance", 0.0))],
-	]
-	var roll := rng.randf()
-	var acc := 0.0
+	var chances := {
+		"gap": float(gaps.get("chance", 0.0)),
+		"moving": float(moving.get("chance", 0.0)),
+		"intermittent": float(inter.get("chance", 0.0)),
+		"spikes": float(spikes.get("row_chance", 0.0)),
+	}
 	var chosen := "none"
-	for entry in chances:
-		acc += entry[1]
-		if roll < acc:
-			chosen = entry[0]
-			break
+	var best := 1.0
+	for type in chances:
+		if chances[type] <= 0.0:
+			continue
+		if not gauges.has(type):
+			gauges[type] = rng.randf()  # départ décalé : pas tous au même segment
+		gauges[type] += chances[type] * rng.randf_range(0.6, 1.4)
+		if gauges[type] >= best:
+			best = gauges[type]
+			chosen = type
+	if chosen != "none":
+		gauges[chosen] -= 1.0
 	match chosen:
 		"gap":
 			return {"type": "gap", "size": rng.randi_range(int(gaps.get("min", 1)), int(gaps.get("max", 1)))}

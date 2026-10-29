@@ -41,7 +41,9 @@ func set_deaths(n: int) -> void:
 	deaths_label.text = "Chutes : %d" % n
 
 
-func show_hint(on: bool) -> void:
+func show_hint(on: bool, text: String = "") -> void:
+	if text != "":
+		hint.text = text
 	hint.visible = on
 	_hint_time = 0.0
 

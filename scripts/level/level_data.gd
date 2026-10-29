@@ -54,17 +54,33 @@ func reset() -> void:
 
 
 var _animated: Array[PlatformBase] = []
+var _animated_progress: PackedFloat32Array = []
 var _animated_ready := false
 
+## Seuls les éléments animés situés dans cette fenêtre de progression autour
+## du cube (en cases, derrière / devant) sont mis à jour chaque image.
+const VISUAL_BEHIND := 12.0
+const VISUAL_AHEAD := 40.0
 
-func update_visuals(t: float) -> void:
+
+## Met à jour l'affichage des éléments animés. Si `around` est fourni (position
+## du cube), on ignore les éléments trop loin (hors écran) : économie de CPU.
+func update_visuals(t: float, around: Variant = null) -> void:
 	if not _animated_ready:
 		for p in platforms + obstacles:
 			if p.is_animated():
 				_animated.append(p)
+				_animated_progress.append(progress_of(p.rect.get_center()))
 		_animated_ready = true
-	for p in _animated:
-		p.update_visual(t)
+	var focus := 0.0
+	if around != null:
+		focus = progress_of(Vector2(around.x, around.z))
+	for i in _animated.size():
+		if around != null:
+			var d := _animated_progress[i] - focus
+			if d < -VISUAL_BEHIND or d > VISUAL_AHEAD:
+				continue
+		_animated[i].update_visual(t)
 
 
 ## Distance « de Manhattan » parcourue depuis le départ pour atteindre p.

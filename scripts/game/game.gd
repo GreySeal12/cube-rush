@@ -25,6 +25,8 @@ var motor: PlayerMotor
 var crown: Crown
 var deaths := 0
 
+var _lava_glow: TextureRect
+var _time := 0.0
 var _accumulator := 0.0
 var _restart_timer := -1.0
 var _finished := false
@@ -62,6 +64,9 @@ func _apply_theme(theme: Dictionary) -> void:
 	background.texture = UiStyle.gradient_texture(
 		theme.get("bg_top", Color.SKY_BLUE), theme.get("bg_bottom", Color.WHITE))
 
+	if theme.get("lava", false):
+		_add_lava(theme.get("lava_color", Color.ORANGE_RED))
+
 	# Lumière unique, sans ombre : le dessus des blocs est le plus clair,
 	# les deux faces visibles ont chacune leur teinte (effet isométrique).
 	$Sun.look_at_from_position(Vector3(-1, 4, 2), Vector3.ZERO)
@@ -69,7 +74,50 @@ func _apply_theme(theme: Dictionary) -> void:
 	env.ambient_light_color = theme.get("ambient", Color(0.75, 0.8, 0.9))
 
 
+## Volcan : une lueur de lave qui pulse en bas de l'écran et des braises qui
+## montent. Tout est dessiné en 2D dans le fond : presque gratuit pour le GPU.
+func _add_lava(lava: Color) -> void:
+	var layer := $Background as CanvasLayer
+	_lava_glow = TextureRect.new()
+	var transparent := lava
+	transparent.a = 0.0
+	_lava_glow.texture = UiStyle.gradient_texture(transparent, lava)
+	_lava_glow.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_lava_glow.stretch_mode = TextureRect.STRETCH_SCALE
+	_lava_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_lava_glow.anchor_left = 0.0
+	_lava_glow.anchor_right = 1.0
+	_lava_glow.anchor_top = 0.55
+	_lava_glow.anchor_bottom = 1.0
+	layer.add_child(_lava_glow)
+
+	var embers := CPUParticles2D.new()
+	embers.amount = 24
+	embers.lifetime = 4.0
+	embers.preprocess = 4.0
+	embers.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	var view := get_viewport().get_visible_rect().size
+	embers.position = Vector2(view.x * 0.5, view.y + 20.0)
+	embers.emission_rect_extents = Vector2(view.x * 0.55, 10.0)
+	embers.direction = Vector2(0, -1)
+	embers.spread = 15.0
+	embers.gravity = Vector2.ZERO
+	embers.initial_velocity_min = 80.0
+	embers.initial_velocity_max = 180.0
+	embers.scale_amount_min = 3.0
+	embers.scale_amount_max = 7.0
+	embers.color = lava.lightened(0.3)
+	var fade := Gradient.new()
+	fade.set_color(0, Color(1, 1, 1, 1))
+	fade.set_color(1, Color(1, 1, 1, 0))
+	embers.color_ramp = fade
+	layer.add_child(embers)
+
+
 func _process(delta: float) -> void:
+	_time += delta
+	if _lava_glow != null:
+		_lava_glow.modulate.a = 0.75 + 0.25 * sin(_time * 1.7)
 	if _finished:
 		player.sync_with(motor, delta)
 		return
@@ -88,7 +136,7 @@ func _process(delta: float) -> void:
 			_accumulator -= PlayerMotor.STEP
 			_on_step_events()
 
-	level.update_visuals(motor.t)
+	level.update_visuals(motor.t, motor.pos)
 	player.sync_with(motor, delta)
 	if motor.state != PlayerMotor.State.DEAD:
 		camera.follow(motor.pos, delta)
@@ -147,7 +195,7 @@ func _restart() -> void:
 	player.reset_visual(motor)
 	camera.snap_to(motor.pos)
 	level.update_visuals(0.0)
-	hud.show_hint(true)
+	hud.show_hint(true, "Touchez pour repartir")
 
 
 func _on_win() -> void:

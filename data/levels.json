@@ -45,7 +45,7 @@
       "id": 2, "name": "Petits sauts", "theme": "ciel", "seed": 2207,
       "speed": 3.7, "width": 3, "path_length": 70,
       "segment_min": 4, "segment_max": 7,
-      "gaps": { "chance": 0.35, "min": 1, "max": 1 },
+      "gaps": { "chance": 0.5, "min": 1, "max": 1 },
       "stars_max_deaths": [0, 3]
     },
     {
@@ -69,8 +69,8 @@
       "segment_min": 3, "segment_max": 6,
       "timing_margin": 0.25,
       "gaps": { "chance": 0.2, "min": 1, "max": 2 },
-      "crumble": { "chance": 0.4, "delay": 0.55 },
-      "moving": { "chance": 0.35, "length": 2, "away_time": 0.9, "travel_time": 0.5 },
+      "crumble": { "chance": 0.3, "delay": 0.55 },
+      "moving": { "chance": 0.3, "length": 2, "away_time": 0.9, "travel_time": 0.5 },
       "stars_max_deaths": [1, 5]
     },
     {
@@ -79,8 +79,8 @@
       "segment_min": 3, "segment_max": 6,
       "timing_margin": 0.25,
       "gaps": { "chance": 0.15, "min": 1, "max": 2 },
-      "moving": { "chance": 0.2, "length": 2, "away_time": 0.9, "travel_time": 0.5 },
-      "intermittent": { "chance": 0.35, "rows_min": 1, "rows_max": 2, "hidden_time": 0.9, "types": ["retract", "rotate"] },
+      "moving": { "chance": 0.12, "length": 2, "away_time": 0.9, "travel_time": 0.5 },
+      "intermittent": { "chance": 0.4, "rows_min": 1, "rows_max": 2, "hidden_time": 0.9, "types": ["retract", "rotate"] },
       "stars_max_deaths": [1, 5]
     },
     {
@@ -89,7 +89,7 @@
       "segment_min": 3, "segment_max": 6,
       "timing_margin": 0.22,
       "gaps": { "chance": 0.15, "min": 1, "max": 2 },
-      "intermittent": { "chance": 0.25, "rows_min": 1, "rows_max": 2, "hidden_time": 0.9, "types": ["rotate", "retract"] },
+      "intermittent": { "chance": 0.15, "rows_min": 1, "rows_max": 2, "hidden_time": 0.9, "types": ["rotate", "retract"] },
       "pillars": { "chance": 0.25 },
       "stars_max_deaths": [1, 5]
     },
@@ -99,8 +99,8 @@
       "segment_min": 3, "segment_max": 6,
       "timing_margin": 0.2,
       "gaps": { "chance": 0.15, "min": 2, "max": 2 },
-      "intermittent": { "chance": 0.15, "rows_min": 1, "rows_max": 2, "hidden_time": 0.9, "types": ["rotate", "retract"] },
-      "pillars": { "chance": 0.15 },
+      "intermittent": { "chance": 0.1, "rows_min": 1, "rows_max": 2, "hidden_time": 0.9, "types": ["rotate", "retract"] },
+      "pillars": { "chance": 0.1 },
       "spikes": { "row_chance": 0.3, "static_chance": 0.2, "up_time": 0.8 },
       "stars_max_deaths": [2, 6]
     },
@@ -122,7 +122,7 @@
       "speed": 5.8, "width": 3, "path_length": 125,
       "segment_min": 1, "segment_max": 5,
       "timing_margin": 0.15,
-      "gaps": { "chance": 0.15, "min": 2, "max": 3 },
+      "gaps": { "chance": 0.2, "min": 2, "max": 3 },
       "crumble": { "chance": 0.5, "delay": 0.45 },
       "moving": { "chance": 0.15, "length": 3, "away_time": 0.8, "travel_time": 0.45 },
       "intermittent": { "chance": 0.12, "rows_min": 1, "rows_max": 2, "hidden_time": 0.8, "types": ["retract", "rotate"] },
