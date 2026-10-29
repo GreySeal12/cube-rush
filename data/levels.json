@@ -1,8 +1,37 @@
 {
+  "_aide": "Configuration des niveaux de Cube Rush. Voir README.md, section « Régler la difficulté ».",
   "themes": {
     "ciel": {
-      "bg_top": "#7cc8f8", "bg_bottom": "#e6f6ff", "ambient": "#c9dcf0",
-      "platform_a": "#5aa9e6", "platform_b": "#3f8fd8", "goal": "#ffffff"
+      "bg_top": "#6ec3f5", "bg_bottom": "#e9f7ff", "ambient": "#c9dcf0",
+      "platform_a": "#5aa9e6", "platform_b": "#3f8fd8", "goal": "#ffffff",
+      "pad": "#ffd166", "pad_accent": "#ffffff",
+      "crumble": "#a8d4f5", "special": "#ffb4d0", "moving": "#7fe3c9",
+      "hazard": "#ff5d73", "pillar": "#2f6aa8", "burst": "#ffffff",
+      "lava": false
+    },
+    "neon": {
+      "bg_top": "#160a35", "bg_bottom": "#6a1b7a", "ambient": "#b9a3e0",
+      "platform_a": "#a64df0", "platform_b": "#ff4fa3", "goal": "#ffffff",
+      "pad": "#3ff0ff", "pad_accent": "#ffffff",
+      "crumble": "#d9a6ff", "special": "#3ff0ff", "moving": "#ffe14f",
+      "hazard": "#ffe14f", "pillar": "#5a1f8f", "burst": "#ff9ad5",
+      "lava": false
+    },
+    "foret": {
+      "bg_top": "#9fe3a8", "bg_bottom": "#f3ffe3", "ambient": "#d3ecc5",
+      "platform_a": "#43a047", "platform_b": "#9ccc3d", "goal": "#ffffff",
+      "pad": "#ffca28", "pad_accent": "#ffffff",
+      "crumble": "#b7e07a", "special": "#ffb74d", "moving": "#4dd0e1",
+      "hazard": "#e53935", "pillar": "#6d4c41", "burst": "#d4ff8a",
+      "lava": false
+    },
+    "volcan": {
+      "bg_top": "#1e0a08", "bg_bottom": "#ff6a1a", "ambient": "#e0b49a",
+      "platform_a": "#3d3431", "platform_b": "#5a4a43", "goal": "#ffe08a",
+      "pad": "#ffb347", "pad_accent": "#fff3c4",
+      "crumble": "#7a5a4a", "special": "#ff8a3d", "moving": "#c9a227",
+      "hazard": "#ffd54f", "pillar": "#2a2220", "burst": "#ffb347",
+      "lava": true, "lava_color": "#ff5a1f"
     }
   },
   "levels": [
@@ -11,6 +40,95 @@
       "speed": 3.5, "width": 3, "path_length": 60,
       "segment_min": 5, "segment_max": 8,
       "stars_max_deaths": [0, 3]
+    },
+    {
+      "id": 2, "name": "Petits sauts", "theme": "ciel", "seed": 2207,
+      "speed": 3.7, "width": 3, "path_length": 70,
+      "segment_min": 4, "segment_max": 7,
+      "gaps": { "chance": 0.35, "min": 1, "max": 1 },
+      "stars_max_deaths": [0, 3]
+    },
+    {
+      "id": 3, "name": "Zigzag", "theme": "ciel", "seed": 3313,
+      "speed": 4.0, "width": 2, "path_length": 80,
+      "segment_min": 1, "segment_max": 4,
+      "gaps": { "chance": 0.3, "min": 1, "max": 2 },
+      "stars_max_deaths": [1, 4]
+    },
+    {
+      "id": 4, "name": "Sol fragile", "theme": "neon", "seed": 4421,
+      "speed": 4.2, "width": 2, "path_length": 85,
+      "segment_min": 2, "segment_max": 5,
+      "gaps": { "chance": 0.25, "min": 1, "max": 2 },
+      "crumble": { "chance": 0.6, "delay": 0.6 },
+      "stars_max_deaths": [1, 4]
+    },
+    {
+      "id": 5, "name": "Va-et-vient", "theme": "neon", "seed": 5531,
+      "speed": 4.4, "width": 2, "path_length": 90,
+      "segment_min": 3, "segment_max": 6,
+      "timing_margin": 0.25,
+      "gaps": { "chance": 0.2, "min": 1, "max": 2 },
+      "crumble": { "chance": 0.4, "delay": 0.55 },
+      "moving": { "chance": 0.35, "length": 2, "away_time": 0.9, "travel_time": 0.5 },
+      "stars_max_deaths": [1, 5]
+    },
+    {
+      "id": 6, "name": "Clignotements", "theme": "neon", "seed": 6637,
+      "speed": 4.6, "width": 2, "path_length": 95,
+      "segment_min": 3, "segment_max": 6,
+      "timing_margin": 0.25,
+      "gaps": { "chance": 0.15, "min": 1, "max": 2 },
+      "moving": { "chance": 0.2, "length": 2, "away_time": 0.9, "travel_time": 0.5 },
+      "intermittent": { "chance": 0.35, "rows_min": 1, "rows_max": 2, "hidden_time": 0.9, "types": ["retract", "rotate"] },
+      "stars_max_deaths": [1, 5]
+    },
+    {
+      "id": 7, "name": "Forêt de piliers", "theme": "foret", "seed": 7741,
+      "speed": 4.8, "width": 3, "path_length": 100,
+      "segment_min": 3, "segment_max": 6,
+      "timing_margin": 0.22,
+      "gaps": { "chance": 0.15, "min": 1, "max": 2 },
+      "intermittent": { "chance": 0.25, "rows_min": 1, "rows_max": 2, "hidden_time": 0.9, "types": ["rotate", "retract"] },
+      "pillars": { "chance": 0.25 },
+      "stars_max_deaths": [1, 5]
+    },
+    {
+      "id": 8, "name": "Épines", "theme": "foret", "seed": 8849,
+      "speed": 5.0, "width": 3, "path_length": 105,
+      "segment_min": 3, "segment_max": 6,
+      "timing_margin": 0.2,
+      "gaps": { "chance": 0.15, "min": 2, "max": 2 },
+      "intermittent": { "chance": 0.15, "rows_min": 1, "rows_max": 2, "hidden_time": 0.9, "types": ["rotate", "retract"] },
+      "pillars": { "chance": 0.15 },
+      "spikes": { "row_chance": 0.3, "static_chance": 0.2, "up_time": 0.8 },
+      "stars_max_deaths": [2, 6]
+    },
+    {
+      "id": 9, "name": "Coulée de lave", "theme": "volcan", "seed": 9157,
+      "speed": 5.4, "width": 3, "path_length": 115,
+      "segment_min": 2, "segment_max": 5,
+      "timing_margin": 0.18,
+      "gaps": { "chance": 0.15, "min": 1, "max": 3 },
+      "crumble": { "chance": 0.4, "delay": 0.5 },
+      "moving": { "chance": 0.15, "length": 2, "away_time": 0.8, "travel_time": 0.45 },
+      "intermittent": { "chance": 0.1, "rows_min": 1, "rows_max": 2, "hidden_time": 0.8, "types": ["retract", "rotate"] },
+      "pillars": { "chance": 0.15 },
+      "spikes": { "row_chance": 0.2, "static_chance": 0.15, "up_time": 0.8 },
+      "stars_max_deaths": [2, 6]
+    },
+    {
+      "id": 10, "name": "Cœur du volcan", "theme": "volcan", "seed": 10267,
+      "speed": 5.8, "width": 3, "path_length": 125,
+      "segment_min": 1, "segment_max": 5,
+      "timing_margin": 0.15,
+      "gaps": { "chance": 0.15, "min": 2, "max": 3 },
+      "crumble": { "chance": 0.5, "delay": 0.45 },
+      "moving": { "chance": 0.15, "length": 3, "away_time": 0.8, "travel_time": 0.45 },
+      "intermittent": { "chance": 0.12, "rows_min": 1, "rows_max": 2, "hidden_time": 0.8, "types": ["retract", "rotate"] },
+      "pillars": { "chance": 0.2 },
+      "spikes": { "row_chance": 0.2, "static_chance": 0.2, "up_time": 0.7 },
+      "stars_max_deaths": [3, 8]
     }
   ]
 }
