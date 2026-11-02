@@ -9,7 +9,7 @@ var theme: Dictionary = {}
 ## Nœud racine contenant tous les éléments (à ajouter à la scène pour l'afficher).
 var root: Node3D
 
-## Éléments qui portent le cube (sols, tremplins, plateformes spéciales).
+## Éléments qui portent le cube (sols, plateformes spéciales).
 var platforms: Array[PlatformBase] = []
 ## Éléments qui ne portent pas le cube mais peuvent le tuer (piliers, pointes).
 var obstacles: Array[PlatformBase] = []
@@ -17,23 +17,28 @@ var obstacles: Array[PlatformBase] = []
 var speed := 4.0
 var width := 3
 var start_position := Vector3.ZERO
-## Direction de départ : 0 = +X, 1 = -Z (voir PlayerMotor).
-var start_direction := 0
+## Direction de départ (voir PlayerMotor.DIRECTIONS).
+var start_direction := PlayerMotor.NORTH
 ## Zone d'arrivée : le niveau est gagné quand le centre du cube y entre.
 var goal_rect: Rect2
 var crown_position := Vector3.ZERO
 
-## Points de virage « idéaux » (centre de chaque bloc d'angle), dans l'ordre.
-## Utilisés par le validateur pour simuler des taps parfaits.
-var turn_points: Array[Vector2] = []
+## « Points d'action » du parcours idéal, dans l'ordre : virages au centre de
+## chaque bloc d'angle et sauts au milieu de la zone d'appel de chaque trou.
+## Chaque entrée : { pos: Vector2, dir: int (direction en arrivant),
+## action: "left" | "right" | "jump", time: float (instant idéal) }.
+## Utilisés par le bot du validateur.
+var waypoints: Array[Dictionary] = []
 ## Statistiques de génération (affichées par le validateur).
 var stats: Dictionary = {}
+## Durée du parcours idéal (cube maintenu en continu, actions parfaites).
+var ideal_duration := 0.0
 
 
 # --- Découpage spatial -------------------------------------------------------
-# Plutôt que de tester tous les éléments à chaque pas, on les range par
-# « tranches » de progression (x - z) : le cube ne teste que la tranche où il
-# se trouve. Indispensable pour les longs niveaux sur les petits téléphones.
+# Plutôt que de tester tous les éléments à chaque pas, on les range dans une
+# grille de cases de BUCKET_SIZE × BUCKET_SIZE : le cube ne teste que la case
+# où il se trouve. Indispensable pour les longs niveaux sur les petits téléphones.
 const BUCKET_SIZE := 4.0
 
 var _ground_buckets: Dictionary = {}
@@ -47,28 +52,30 @@ func _build_buckets() -> void:
 	_buckets_ready = true
 
 
-## Range chaque élément dans toutes les tranches que son emprise touche
-## (l'ordre d'origine est conservé à l'intérieur d'une tranche).
+## Range chaque élément dans toutes les cases de grille que son emprise touche
+## (l'ordre d'origine est conservé à l'intérieur d'une case).
 func _fill_buckets(items: Array[PlatformBase], buckets: Dictionary) -> void:
 	for item in items:
-		var b := item.get_bounds()
-		var lo := _bucket_of(progress_of(Vector2(b.position.x, b.end.y)))
-		var hi := _bucket_of(progress_of(Vector2(b.end.x, b.position.y)))
-		for k in range(lo, hi + 1):
-			if not buckets.has(k):
-				buckets[k] = [] as Array[PlatformBase]
-			buckets[k].append(item)
+		var b := item.get_bounds().grow(PlatformBase.EPSILON)
+		var lo := _cell_of(b.position)
+		var hi := _cell_of(b.end)
+		for cx in range(lo.x, hi.x + 1):
+			for cz in range(lo.y, hi.y + 1):
+				var key := Vector2i(cx, cz)
+				if not buckets.has(key):
+					buckets[key] = [] as Array[PlatformBase]
+				buckets[key].append(item)
 
 
-func _bucket_of(progress: float) -> int:
-	return floori(progress / BUCKET_SIZE)
+func _cell_of(p: Vector2) -> Vector2i:
+	return Vector2i(floori(p.x / BUCKET_SIZE), floori(p.y / BUCKET_SIZE))
 
 
 ## Renvoie l'élément qui porte le point p (x, z) au temps t, ou null (vide).
 func ground_at(p: Vector2, t: float) -> PlatformBase:
 	if not _buckets_ready:
 		_build_buckets()
-	var candidates: Array = _ground_buckets.get(_bucket_of(progress_of(p)), [])
+	var candidates: Array = _ground_buckets.get(_cell_of(p), [])
 	for plat in candidates:
 		if plat.is_ground_at(p, t):
 			return plat
@@ -79,11 +86,13 @@ func ground_at(p: Vector2, t: float) -> PlatformBase:
 func is_deadly(center: Vector3, half: float, t: float) -> bool:
 	if not _buckets_ready:
 		_build_buckets()
-	var q := progress_of(Vector2(center.x, center.z))
-	for k in range(_bucket_of(q - 2.0 * half), _bucket_of(q + 2.0 * half) + 1):
-		for obs in _obstacle_buckets.get(k, []):
-			if obs.is_deadly(center, half, t):
-				return true
+	var lo := _cell_of(Vector2(center.x - half, center.z - half))
+	var hi := _cell_of(Vector2(center.x + half, center.z + half))
+	for cx in range(lo.x, hi.x + 1):
+		for cz in range(lo.y, hi.y + 1):
+			for obs in _obstacle_buckets.get(Vector2i(cx, cz), []):
+				if obs.is_deadly(center, half, t):
+					return true
 	return false
 
 
@@ -94,14 +103,28 @@ func reset() -> void:
 		obs.reset()
 
 
+## État interne des éléments (sol fragile déjà touché…), pour que le bot puisse
+## essayer une manœuvre puis revenir en arrière.
+func save_state() -> Array:
+	var out := []
+	for plat in platforms:
+		out.append(plat.get_state())
+	return out
+
+
+func load_state(saved: Array) -> void:
+	for i in platforms.size():
+		platforms[i].set_state(saved[i])
+
+
+# --- Affichage ---------------------------------------------------------------
+
 var _animated: Array[PlatformBase] = []
-var _animated_progress: PackedFloat32Array = []
 var _animated_ready := false
 
-## Seuls les éléments animés situés dans cette fenêtre de progression autour
-## du cube (en cases, derrière / devant) sont mis à jour chaque image.
-const VISUAL_BEHIND := 12.0
-const VISUAL_AHEAD := 40.0
+## Seuls les éléments animés à moins de cette distance (en cases) du cube sont
+## mis à jour chaque image : les autres sont hors de l'écran.
+const VISUAL_RADIUS := 26.0
 
 
 ## Met à jour l'affichage des éléments animés. Si `around` est fourni (position
@@ -111,30 +134,13 @@ func update_visuals(t: float, around: Variant = null) -> void:
 		for p in platforms + obstacles:
 			if p.is_animated():
 				_animated.append(p)
-				_animated_progress.append(progress_of(p.rect.get_center()))
 		_animated_ready = true
-	var focus := 0.0
-	if around != null:
-		focus = progress_of(Vector2(around.x, around.z))
-	for i in _animated.size():
+	for p in _animated:
 		if around != null:
-			var d := _animated_progress[i] - focus
-			if d < -VISUAL_BEHIND or d > VISUAL_AHEAD:
+			var c := p.rect.get_center()
+			if absf(c.x - around.x) > VISUAL_RADIUS or absf(c.y - around.z) > VISUAL_RADIUS:
 				continue
-		_animated[i].update_visual(t)
-
-
-## Distance « de Manhattan » parcourue depuis le départ pour atteindre p.
-## Le cube avance toujours à vitesse constante soit vers +X soit vers -Z :
-## la quantité (x - z) augmente donc exactement de `speed` par seconde, quel
-## que soit le moment des virages. Le temps d'arrivée en un point ne dépend
-## donc QUE de sa position : c'est ce qui permet de synchroniser les pièges.
-func progress_of(p: Vector2) -> float:
-	return (p.x - p.y) - (start_position.x - start_position.z)
-
-
-func ideal_time_at(p: Vector2) -> float:
-	return progress_of(p) / speed
+		p.update_visual(t)
 
 
 ## Libère les nœuds (utile pour le validateur).

@@ -12,7 +12,7 @@ var _body: Node3D         # écrasement / étirement / culbute
 var _shadow: MeshInstance3D
 var _burst: CPUParticles3D
 
-var _yaw := PI
+var _yaw := 0.0
 var _squash := 0.0
 var _bob_time := 0.0
 
@@ -116,11 +116,16 @@ func sync_with(motor: PlayerMotor, delta: float) -> void:
 		_shadow.visible = false
 
 
-## La caméra regarde toujours depuis (-X, +Z) : le cube s'éloigne d'elle.
-## Pour que l'on voie son visage, il regarde « sur le côté visible » :
-## vers +Z quand il avance vers +X, vers -X quand il avance vers -Z.
+## Le cube regarde vers la caméra (pour qu'on voie son visage), en tournant
+## un peu la tête vers sa direction de déplacement.
 func _face_yaw(dir: int) -> float:
-	return PI if dir == 0 else PI / 2.0
+	var back := CameraFollow.back_direction()
+	var heading: Vector2 = PlayerMotor.DIRECTIONS[dir]
+	var look := Vector2(back.x, back.z).normalized() + heading * 0.9
+	if look.length_squared() < 0.01:
+		look = heading
+	# La face « visage » est la face -Z locale.
+	return atan2(-look.x, -look.y)
 
 
 ## Remet le cube à l'état de départ (après une chute).

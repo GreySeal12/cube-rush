@@ -18,6 +18,14 @@ func reset() -> void:
 	touch_time = -1.0
 
 
+func get_state() -> Variant:
+	return touch_time
+
+
+func set_state(state: Variant) -> void:
+	touch_time = float(state)
+
+
 func on_touch(t: float) -> void:
 	if touch_time < 0.0:
 		touch_time = t

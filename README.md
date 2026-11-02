@@ -1,12 +1,27 @@
 # Cube Rush
 
-Jeu d'arcade 3D low-poly pour mobile : un cube kawaii avance tout seul sur des
-plateformes en zigzag, **un tap change sa direction**. Il faut rester sur le
-chemin jusqu'à la couronne dorée. 30 niveaux, 8 mondes, 100 % hors ligne.
+Jeu d'arcade 3D low-poly pour mobile : on guide un cube kawaii sur un chemin
+de plateformes plein de virages et de pièges, jusqu'à la couronne dorée.
+30 niveaux, 8 mondes, 100 % hors ligne.
+
+### Commandes
+
+| Geste | Effet |
+|---|---|
+| **Appui long** (n'importe où) | Le cube avance tant que le doigt reste posé, et s'arrête quand on relâche |
+| **Appui court à gauche** de l'écran | Quart de tour à gauche |
+| **Appui court à droite** | Quart de tour à droite |
+| **Appui court au milieu** | Saut : un bond vers l'avant de longueur fixe, même à l'arrêt |
+
+On peut jouer à un seul doigt (relâcher, taper, ré-appuyer) ou à deux pouces
+(un pouce maintenu pour avancer, l'autre qui tape). Un appui devient « long »
+après 0,15 s. Les virages sont relatifs au cube, comme en voiture. Le chemin
+progresse toujours vers le haut de l'écran ; selon le niveau, il démarre vers
+la droite, vers la gauche ou vers l'avant, puis serpente entre les deux côtés.
 
 | Niveaux | Monde | Ce qui change |
 |---|---|---|
-| 1-3 | Ciel | Virages, puis trous avec tremplin, virages serrés |
+| 1-3 | Ciel | Virages, puis trous à sauter, virages serrés |
 | 4-6 | Néon | Sol fragile, ponts mobiles, plateformes intermittentes |
 | 7-8 | Forêt | Piliers, pointes |
 | 9-10 | Volcan | Vitesse en hausse, mécaniques combinées, lave |
@@ -15,8 +30,8 @@ chemin jusqu'à la couronne dorée. 30 niveaux, 8 mondes, 100 % hors ligne.
 | 21-25 | Automne | Sous-bois de piliers, racines, lianes, clairière piégée |
 | 26-30 | Obsidienne | Cendres, rivière de lave, finale à 7 cases/s sur 260 cases |
 
-Vitesse : 3,5 → 7 cases/s. Durée d'un parcours parfait : 17 s (niveau 1)
-→ 38 s (niveau 30). Tolérance des pièges synchronisés : 0,25 → 0,10 s.
+Vitesse : 3,5 → 7 cases/s. Durée d'un parcours parfait (sans s'arrêter) :
+16 s (niveau 1) → 38 s (niveau 30) ; à un seul doigt : 18 s → 62 s.
 
 - Moteur : **Godot 4.7.2** (GDScript uniquement), renderer **Mobile**
 - Cible : **Android** (arm64-v8a, minSdk 24), portrait uniquement
@@ -62,18 +77,27 @@ En ligne de commande :
 godot --path .
 ```
 
-Commandes sur PC : **clic gauche** ou **Espace** = tap. Le premier tap fait
-démarrer le cube, les suivants le font tourner. **Échap/retour** n'est pas
-utilisé sur PC ; le bouton pause est en haut à droite.
+Commandes sur PC : **clic maintenu** = avancer, **clic court** = selon la zone
+(gauche / milieu / droite), comme sur téléphone. Au clavier : **↑ / W / Z**
+maintenu = avancer, **← / A / Q** et **→ / D** = tourner, **Espace** = sauter.
+Le bouton pause est en haut à droite.
 
 ## 3. Valider les niveaux (garantie de jouabilité)
 
 Le script de validation génère chaque niveau à partir de `data/levels.json`,
 vérifie qu'il est **déterministe** (même seed ⇒ même niveau), contrôle des
-règles simples (fenêtre de virage, écart entre deux virages, hauteur et durée
-des sauts) puis **simule une partie complète avec le vrai moteur du cube** :
-un « bot » qui tape au centre de chaque virage, puis 0,06 s trop tôt, trop tard
-et au hasard. Chaque niveau doit être réussi dans tous les cas.
+règles simples (fenêtre de virage, écart entre deux actions, zone d'appel et
+hauteur des sauts) puis **simule des parties complètes avec le vrai moteur du
+cube** (`LevelBot`) :
+- un joueur **« expert »** qui garde le doigt appuyé et tape au centre de
+  chaque virage et au milieu de chaque zone d'appel, puis 0,06 s trop tôt,
+  trop tard et au hasard. Comme un humain, il relâche le doigt quand un pont
+  ou une plateforme n'est pas prêt ;
+- un joueur **« à un doigt »** qui s'arrête à chaque virage pour taper, saute
+  à l'arrêt quand le sol le permet, et attend le bon moment devant les
+  éléments à cycle.
+
+Chaque niveau doit être réussi dans tous les cas.
 
 ```bash
 ./tools/validate.sh            # Linux / macOS (godot dans le PATH)
@@ -93,12 +117,11 @@ cache des classes). Code de sortie : 0 si tout est jouable, 1 sinon.
 Exemple de sortie :
 
 ```
-Niv | Vitesse | Larg. | Virages | Fenêtre | Durée  | Détails
-  1 |     3.5 |     3 |       6 |  0.86 s |  17.5 s | OK
+Niv | Départ | Vitesse | Larg. | Virages | Fenêtre | Expert | 1 doigt | Détails
+  1 | forwar |     3.5 |     3 |       5 |  0.86 s |  16.1 s |   18.4 s | OK
+  2 | right  |     3.7 |     3 |       7 |  0.81 s |  19.3 s |   23.3 s | OK  gaps=4, max_gap=1
   ...
- 10 |     5.8 |     3 |      17 |  0.52 s |  22.3 s | OK  gaps=4, max_gap=3, crumble=34, ...
-  ...
- 30 |     7.0 |     3 |      36 |  0.43 s |  37.9 s | OK  gaps=6, max_gap=3, crumble=47, ...
+ 30 | left   |     7.0 |     3 |      33 |  0.43 s |  37.7 s |   61.9 s | OK  gaps=6, max_gap=3, ...
 RÉSULTAT : tous les niveaux sont jouables.
 ```
 
@@ -193,14 +216,15 @@ scripts/
   game_manager.gd        Autoload : changements d'écran, règle des étoiles
   save_manager.gd        Autoload : sauvegarde (user://save.cfg)
   player/player_motor.gd Mouvement du cube (logique pure, déterministe)
+  game/touch_controls.gd Appui long / taps par zone / clavier -> commandes
   player/player.gd       Affichage et animations du cube
   level/level_generator.gd  Génération du niveau depuis la config
   level/level_data.gd       Niveau généré (requêtes « sol ? piège ? »)
-  level/level_validator.gd  Contrôles + simulation du bot
+  level/level_validator.gd  Contrôles + simulations
+  level/level_bot.gd        Joueur automatique (« expert » et « à un doigt »)
   level/level_database.gd   Lecture de data/levels.json
   platforms/platform_base.gd     Classe de base commune
   platforms/static_platform.gd   Sol fixe
-  platforms/jump_pad.gd          Tremplin (avant un trou)
   platforms/crumble_platform.gd  Sol qui s'effondre après le passage
   platforms/moving_platform.gd   Pont en va-et-vient
   platforms/retracting_platform.gd  Plateforme qui se rétracte
@@ -216,15 +240,21 @@ tools/
 
 ### Comment ça marche (en bref)
 
-- **Mouvement déterministe** : le cube avance à vitesse constante vers +X ou
-  -Z, simulé par pas fixes de 1/120 s (`PlayerMotor`). Pas de moteur physique.
-- **Le temps d'arrivée ne dépend que de la position** : comme le cube va
-  toujours soit vers +X soit vers -Z, la quantité `x - z` augmente exactement
-  de `vitesse` par seconde, quels que soient les virages. Le générateur s'en
-  sert pour synchroniser plateformes mobiles, intermittentes et pointes :
-  elles sont « sûres » quand un joueur bien centré passe, avec une marge
-  `timing_margin`. Un joueur décalé (virage trop tôt / trop tard) arrive en
-  avance ou en retard… et peut tomber.
+- **Mouvement déterministe** : à chaque pas fixe de 1/120 s (`PlayerMotor`),
+  le cube reçoit des commandes (avancer ou non, tourner, sauter) et se
+  déplace à vitesse constante dans l'une des 4 directions de la grille.
+  Pas de moteur physique.
+- **Chemin sans croisement** : il alterne un segment vers l'avant (haut de
+  l'écran) et un segment vers la droite ou la gauche, il ne revient jamais
+  en arrière.
+- **Éléments à cycle** (ponts mobiles, plateformes intermittentes, pointes) :
+  leur phase « sûre » dure au moins le temps de les traverser, plus
+  `timing_margin` de chaque côté. Elle est calée sur le parcours idéal : qui
+  ne s'arrête jamais passe pile. Sinon, il suffit de relâcher le doigt et
+  d'attendre le bon moment.
+- **Sauts** : le saut a une longueur fixe (`vitesse × 0,75 s`). Les trous trop
+  grands pour la vitesse du niveau sont raccourcis automatiquement, pour
+  garder au moins 0,2 s de zone d'appel en roulant.
 - **Logique séparée de l'affichage** : chaque plateforme répond à
   « est-ce que je porte le cube au temps t ? » et « est-ce que je le tue ? ».
   Le jeu et le validateur utilisent exactement le même code.
@@ -239,10 +269,12 @@ modification, relancez la validation.
 | `seed` | Graine du hasard. Changez-la pour obtenir un autre tracé avec les mêmes réglages. |
 | `speed` | Vitesse du cube (cases/s). +0,2 se sent nettement. |
 | `width` | Largeur du chemin en cases (2 = serré, 3 = confortable ; les piliers et pointes latérales demandent 3). |
+| `start` | Direction de départ : `"forward"` (vers l'avant), `"right"` ou `"left"`. |
+| `side_bias` | Tendance des détours : 0,5 = autant à droite qu'à gauche (le chemin serpente au centre), 0,8 = surtout à droite, 0,2 = surtout à gauche. |
 | `path_length` | Longueur du parcours (en cases). Durée ≈ `path_length / speed`. |
 | `segment_min` / `segment_max` | Longueur des lignes droites entre deux virages. Petit = virages serrés et fréquents. |
-| `timing_margin` | Tolérance (s) des éléments synchronisés. Plus petit = il faut être plus précis dans ses virages. |
-| `gaps` | Trous avec tremplin : `chance` (part des segments), `min`/`max` (taille du trou en cases). |
+| `timing_margin` | Tolérance (s) des éléments à cycle. Plus petit = fenêtre de passage plus courte. |
+| `gaps` | Trous à sauter : `chance` (part des segments), `min`/`max` (taille en cases, plafonnée selon la vitesse : 1 case à 3,7 cases/s, 2 à 4 cases/s, 3 à partir de 5,8 cases/s). |
 | `crumble` | Sol fragile : `chance` (part des segments), `delay` (s avant effondrement). |
 | `moving` | Ponts mobiles : `chance`, `length` (cases), `away_time` (s écarté), `travel_time` (s de trajet). |
 | `intermittent` | Plateformes qui se rétractent / pivotent : `chance`, `rows_min`/`rows_max`, `hidden_time`, `types` (`"retract"`, `"rotate"`). |
@@ -255,8 +287,8 @@ La somme des `chance` des particularités (`gaps`, `moving`, `intermittent`,
 `spikes.row_chance`) doit rester inférieure à 1 (un segment n'a qu'une
 particularité).
 
-**Règle des étoiles** : le temps de parcours est toujours le même (vitesse
-constante), on compte donc les **chutes** avant de réussir le niveau.
+**Règle des étoiles** : on compte les **chutes** avant de réussir le niveau
+(le temps dépend surtout du style de jeu, un ou deux doigts).
 Voir `GameManager.compute_stars()`.
 
 Autres réglages, dans le code (constantes en haut des fichiers) :
@@ -264,6 +296,10 @@ Autres réglages, dans le code (constantes en haut des fichiers) :
 | Où | Quoi |
 |---|---|
 | `PlayerMotor.GRAVITY` | Gravité (hauteur des sauts et vitesse de chute). |
+| `PlayerMotor.JUMP_AIRTIME` | Durée d'un saut, donc sa longueur (`vitesse × durée`). |
+| `TouchControls.HOLD_DELAY` | Durée à partir de laquelle un appui devient « long » (0,15 s). |
+| `TouchControls.SIDE_ZONE` | Largeur des zones « tourner » à gauche et à droite (36 % de l'écran chacune). |
+| `CameraFollow.YAW_DEGREES` | Angle de la caméra 3/4 (0 = vue de face, 45 = isométrique). |
 | `PlayerMotor.HAZARD_HALF` | Taille de la « boîte de collision » contre les pièges (plus petit = plus indulgent). |
 | `CameraFollow.view_width` | Zoom de la caméra (largeur visible en cases). |
 | `game.gd : RESTART_DELAY` | Durée de l'animation de chute avant redémarrage. |
@@ -284,8 +320,8 @@ et le déblocage s'adaptent automatiquement au nombre de niveaux.
   post-traitement, éclairage calculé par sommet, maillages et matériaux partagés.
 - Les rangées de sol consécutives sont fusionnées en un seul bloc
   (≈ 15 à 200 maillages par niveau) ; seuls les éléments animés proches du
-  cube sont mis à jour, et le cube ne teste que les éléments de sa « tranche »
-  de parcours (découpage spatial dans `LevelData`).
+  cube sont mis à jour, et le cube ne teste que les éléments de sa case de
+  grille (découpage spatial dans `LevelData`).
 - Anti-aliasing MSAA 2× (`anti_aliasing/quality/msaa_3d`) : passez-le à
   « Disabled » si un téléphone peine.
 - Si le renderer Mobile pose problème sur un appareil, passez en
@@ -304,15 +340,21 @@ Vérifié dans l'environnement de développement (Linux, sans téléphone) :
 - Export d'un APK de debug et d'un APK de release signés (arm64-v8a) ;
   manifeste contrôlé : minSdk 24, portrait, **aucune permission**.
 
-**Non testé** : l'installation et le jeu sur un vrai téléphone Android
-(aucun appareil ni émulateur disponible), donc ni les 60 FPS réels, ni le
-ressenti tactile, ni l'affichage autour des encoches. À faire en priorité lors
-du premier essai sur appareil.
+Testé sur un vrai téléphone (première version, contrôle à un tap) : jeu
+fluide, bonne réactivité, texte lisible, boutons système et absence de
+plantage confirmés.
+
+Vérifié dans l'environnement de développement pour les nouvelles commandes :
+appui long, taps par zone, deux doigts, glissement ignoré, bouton pause,
+avec des évènements tactiles simulés sur trois tailles d'écran.
+**Pas encore testé sur téléphone** : le ressenti de l'appui long et des zones
+de tap.
 
 ## 11. Évolutions prévues (hors périmètre de cette version)
 
 L'architecture laisse la place pour : skins (le cube est construit dans
-`player.gd`), sons et musique (`game.gd : _on_step_events()` et les
+`player.gd`), mode démo (`game.gd : autopilot`), sons et musique
+(`game.gd : _on_step_events()` et les
 événements `just_jumped` / `just_landed` de `PlayerMotor`), nouveaux mondes
 (ajouter une palette dans `themes`), iOS (aucun code spécifique Android hormis
 le bouton retour, ignoré ailleurs).

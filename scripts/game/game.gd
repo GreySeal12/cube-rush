@@ -24,6 +24,10 @@ var level: LevelData
 var motor: PlayerMotor
 var crown: Crown
 var deaths := 0
+## Commandes tactiles / clavier.
+var controls: TouchControls
+## Pilote automatique (outils de test, future démo). null en jeu normal.
+var autopilot: LevelBot = null
 
 var _lava_glow: TextureRect
 var _time := 0.0
@@ -46,10 +50,16 @@ func _ready() -> void:
 	_apply_theme(theme)
 	motor = PlayerMotor.new(level)
 	player.reset_visual(motor)
-	camera.snap_to(motor.pos)
+	camera.snap_to(motor.pos, _side_heading())
 	hud.set_level(level_number)
 	hud.set_deaths(deaths)
 	hud.show_hint(true)
+
+	controls = TouchControls.new()
+	add_child(controls)
+	controls.action.connect(_on_action)
+	# Un toucher sur le bouton pause ne doit pas faire tourner le cube.
+	_update_ignore_rects.call_deferred()
 
 	hud.pause_pressed.connect(pause_game)
 	pause_menu.resume_requested.connect(resume_game)
@@ -68,8 +78,8 @@ func _apply_theme(theme: Dictionary) -> void:
 		_add_lava(theme.get("lava_color", Color.ORANGE_RED))
 
 	# Lumière unique, sans ombre : le dessus des blocs est le plus clair,
-	# les deux faces visibles ont chacune leur teinte (effet isométrique).
-	$Sun.look_at_from_position(Vector3(-1, 4, 2), Vector3.ZERO)
+	# les deux faces visibles (avant et côté) ont chacune leur teinte.
+	$Sun.look_at_from_position(Vector3(1.5, 4, 3), Vector3.ZERO)
 	var env := environment.environment
 	env.ambient_light_color = theme.get("ambient", Color(0.75, 0.8, 0.9))
 
@@ -128,18 +138,27 @@ func _process(delta: float) -> void:
 			_restart()
 		return
 
+	# Le niveau démarre au premier appui long (ou à la première action).
+	if motor.state == PlayerMotor.State.WAITING and _wants_to_move():
+		_begin()
+
 	if motor.state == PlayerMotor.State.RUNNING:
 		# Simulation à pas fixes : identique quelle que soit la fréquence d'affichage.
 		_accumulator += minf(delta, MAX_FRAME_TIME)
 		while _accumulator >= PlayerMotor.STEP and motor.state == PlayerMotor.State.RUNNING:
+			if autopilot != null:
+				autopilot.control(motor)
+			else:
+				motor.holding = controls.is_holding()
 			motor.step()
 			_accumulator -= PlayerMotor.STEP
 			_on_step_events()
 
 	level.update_visuals(motor.t, motor.pos)
 	player.sync_with(motor, delta)
+	motor.clear_events()
 	if motor.state != PlayerMotor.State.DEAD:
-		camera.follow(motor.pos, delta)
+		camera.follow(motor.pos, delta, _side_heading())
 
 	match motor.state:
 		PlayerMotor.State.DEAD:
@@ -154,28 +173,46 @@ func _on_step_events() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	var tapped := false
-	if event is InputEventMouseButton:
-		var mb := event as InputEventMouseButton
-		tapped = mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT
-	elif event is InputEventKey:
-		var key := event as InputEventKey
-		tapped = key.pressed and not key.echo and key.keycode in [KEY_SPACE, KEY_UP, KEY_ENTER]
-	if not tapped:
-		return
-	get_viewport().set_input_as_handled()
-	_on_tap()
+	if controls.handle(event):
+		get_viewport().set_input_as_handled()
 
 
-func _on_tap() -> void:
-	if _finished or _restart_timer >= 0.0:
+## Direction latérale du cube (zéro s'il va vers l'avant), pour la caméra.
+func _side_heading() -> Vector2:
+	var f := motor.forward()
+	return Vector2(f.x, 0.0)
+
+
+func _wants_to_move() -> bool:
+	if autopilot != null:
+		return true
+	return controls.is_holding()
+
+
+func _begin() -> void:
+	motor.start()
+	_accumulator = 0.0
+	hud.show_hint(false)
+
+
+## Tap court : tourner à gauche / à droite, ou sauter.
+func _on_action(action_name: String) -> void:
+	if _finished or _restart_timer >= 0.0 or get_tree().paused or autopilot != null:
 		return
 	if motor.state == PlayerMotor.State.WAITING:
-		motor.start()
-		_accumulator = 0.0
-		hud.show_hint(false)
-	else:
-		motor.tap()
+		_begin()
+	match action_name:
+		"left":
+			motor.turn(-1)
+		"right":
+			motor.turn(1)
+		"jump":
+			motor.jump()
+	hud.flash_zone(action_name)
+
+
+func _update_ignore_rects() -> void:
+	controls.ignore_rects = [hud.pause_button_rect()]
 
 
 func _on_death() -> void:
@@ -193,9 +230,11 @@ func _restart() -> void:
 	motor.reset()
 	crown.reset()
 	player.reset_visual(motor)
-	camera.snap_to(motor.pos)
+	camera.snap_to(motor.pos, _side_heading())
 	level.update_visuals(0.0)
-	hud.show_hint(true, "Touchez pour repartir")
+	# Il faut reposer le doigt pour repartir (pas de départ involontaire).
+	controls.clear()
+	hud.show_hint(true, "Maintenez pour repartir")
 
 
 func _on_win() -> void:
@@ -232,6 +271,7 @@ func pause_game() -> void:
 func resume_game() -> void:
 	pause_layer.visible = false
 	get_tree().paused = false
+	controls.clear()
 	# On ne rattrape pas le temps passé en pause.
 	_accumulator = 0.0
 

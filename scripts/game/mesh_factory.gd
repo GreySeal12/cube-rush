@@ -133,19 +133,6 @@ static func spike_cluster(height: float) -> ArrayMesh:
 	return mesh
 
 
-## Chevron « > » plat (deux barres) pointant vers -Z, pour les tremplins.
-static func chevron() -> ArrayMesh:
-	if _meshes.has("chevron"):
-		return _meshes["chevron"]
-	var st := SurfaceTool.new()
-	var bar := box(Vector3(0.12, 0.04, 0.42))
-	st.append_from(bar, 0, Transform3D(Basis(Vector3.UP, -PI / 4.0), Vector3(-0.13, 0, 0.0)))
-	st.append_from(bar, 0, Transform3D(Basis(Vector3.UP, PI / 4.0), Vector3(0.13, 0, 0.0)))
-	var mesh := st.commit()
-	_meshes["chevron"] = mesh
-	return mesh
-
-
 ## Crée un MeshInstance3D sans ombre (les ombres dynamiques sont désactivées
 ## partout pour tenir 60 FPS sur les petits téléphones).
 static func instance(mesh: Mesh, mat: Material) -> MeshInstance3D:

@@ -2,11 +2,13 @@ class_name PlayerMotor
 extends RefCounted
 ## « Moteur » du cube : déplacement manuel et déterministe, sans moteur physique.
 ##
-## Le cube avance tout seul à vitesse constante, soit vers +X, soit vers -Z
-## (les deux diagonales de l'écran). Un tap alterne entre ces deux axes.
-## La simulation avance par pas FIXES de STEP secondes : avec les mêmes taps
-## aux mêmes pas, on obtient toujours exactement le même résultat. Le jeu et le
-## script de validation utilisent tous les deux cette classe.
+## Commandes (fournies à chaque pas par le jeu ou par le bot du validateur) :
+##   - `holding` : vrai tant que le joueur maintient le doigt -> le cube avance ;
+##   - turn(-1 / +1) : quart de tour à gauche / à droite (au sol uniquement) ;
+##   - jump() : bond vers l'avant, de longueur fixe (au sol uniquement).
+## La simulation avance par pas FIXES de STEP secondes : avec les mêmes
+## commandes aux mêmes pas, on obtient toujours exactement le même résultat.
+## Le jeu et le script de validation utilisent tous les deux cette classe.
 
 enum State { WAITING, RUNNING, DEAD, WON }
 enum Death { NONE, FALL, HIT }
@@ -15,6 +17,12 @@ enum Death { NONE, FALL, HIT }
 const STEP := 1.0 / 120.0
 ## Gravité en cases/s² (une case = 1 unité).
 const GRAVITY := 25.0
+## Durée d'un saut (s). Pendant le saut, le cube avance à la vitesse du
+## niveau : il parcourt donc `vitesse × JUMP_AIRTIME` cases, même s'il était
+## arrêté au moment du saut (c'est un « bond » vers l'avant).
+const JUMP_AIRTIME := 0.75
+## Vitesse verticale au décollage : un tir qui retombe au bout de T vérifie vy = g·T/2.
+const JUMP_VELOCITY := GRAVITY * JUMP_AIRTIME * 0.5
 ## Demi-taille visuelle du cube (le cube fait 0,6 case de côté).
 const HALF_SIZE := 0.3
 ## Demi-taille utilisée pour les pièges : un peu plus petite que le cube
@@ -23,26 +31,38 @@ const HAZARD_HALF := 0.22
 ## En dessous de cette hauteur, le cube ne peut plus remonter sur un bloc : chute.
 const FALL_LIMIT := -0.25
 
-## Directions possibles, en (x, z).
-const DIRECTIONS := [Vector2(1, 0), Vector2(0, -1)]
+## Directions possibles, en (x, z), dans le sens des aiguilles d'une montre
+## vu du dessus : 0 = « avant » (-Z, haut de l'écran), 1 = droite (+X),
+## 2 = arrière (+Z), 3 = gauche (-X).
+const DIRECTIONS := [Vector2(0, -1), Vector2(1, 0), Vector2(0, 1), Vector2(-1, 0)]
+const NORTH := 0
+const EAST := 1
+const SOUTH := 2
+const WEST := 3
 
 var level: LevelData
 var state := State.WAITING
 var death := Death.NONE
 var pos := Vector3.ZERO
-var dir := 0
+var dir := NORTH
 var vy := 0.0
 var grounded := true
 var ground: PlatformBase = null
-## Temps du niveau (s) depuis le départ du cube.
+## Vitesse horizontale (x, z) pendant un saut ou une chute.
+var air_velocity := Vector2.ZERO
+## Commande « avancer » pour le prochain pas.
+var holding := false
+## Temps du niveau (s) depuis le départ.
 var t := 0.0
 ## Nombre de pas simulés depuis le départ.
 var steps := 0
 
-# Événements du dernier pas (lus par le jeu pour les animations).
+# Événements du dernier pas / de la dernière commande (pour les animations).
 var just_jumped := false
 var just_landed := false
 var just_turned := false
+## Le cube a avancé pendant le dernier pas.
+var moving := false
 
 
 func _init(level_data: LevelData) -> void:
@@ -58,22 +78,54 @@ func reset() -> void:
 	vy = 0.0
 	grounded = true
 	ground = null
+	air_velocity = Vector2.ZERO
+	holding = false
 	t = 0.0
 	steps = 0
+	moving = false
 
 
+## Copie complète de l'état (utilisée par le bot pour « essayer » un coup).
+func copy_from(other: PlayerMotor) -> void:
+	state = other.state
+	death = other.death
+	pos = other.pos
+	dir = other.dir
+	vy = other.vy
+	grounded = other.grounded
+	ground = other.ground
+	air_velocity = other.air_velocity
+	holding = other.holding
+	t = other.t
+	steps = other.steps
+
+
+## Le temps du niveau démarre au premier mouvement ou à la première action.
 func start() -> void:
 	if state == State.WAITING:
 		state = State.RUNNING
 
 
-## Changement de direction. Impossible en l'air (règle simple et lisible).
-## Renvoie true si le virage a été pris en compte.
-func tap() -> bool:
+## Quart de tour : side = -1 (gauche) ou +1 (droite). Impossible en l'air.
+func turn(side: int) -> bool:
+	start()
 	if state != State.RUNNING or not grounded:
 		return false
-	dir = 1 - dir
+	dir = posmod(dir + side, 4)
 	just_turned = true
+	return true
+
+
+## Bond vers l'avant. Impossible en l'air.
+func jump() -> bool:
+	start()
+	if state != State.RUNNING or not grounded:
+		return false
+	vy = JUMP_VELOCITY
+	air_velocity = forward() * level.speed
+	grounded = false
+	ground = null
+	just_jumped = true
 	return true
 
 
@@ -83,40 +135,35 @@ func forward() -> Vector2:
 
 ## Avance la simulation d'un pas fixe.
 func step() -> void:
-	just_jumped = false
 	just_landed = false
-	just_turned = false
 	if state != State.RUNNING:
 		return
 	t += STEP
 	steps += 1
 
-	# 1) Déplacement horizontal : vitesse constante + éventuel entraînement
-	#    par une plateforme mobile.
-	var vel := forward() * level.speed
-	if grounded and ground != null:
-		vel += ground.get_velocity(t)
+	# 1) Déplacement horizontal.
+	var vel := air_velocity
+	if grounded:
+		vel = forward() * level.speed if holding else Vector2.ZERO
+		if ground != null:
+			vel += ground.get_velocity(t)
+	moving = vel.length_squared() > 0.0
 	pos.x += vel.x * STEP
 	pos.z += vel.y * STEP
 	var p := Vector2(pos.x, pos.z)
 
-	# 2) Sol / saut / chute.
+	# 2) Sol / chute.
 	if grounded:
 		var g := level.ground_at(p, t)
 		if g == null:
-			# Plus rien sous le centre du cube : il commence à tomber.
+			# Plus rien sous le centre du cube : il tombe en gardant son élan.
 			grounded = false
 			ground = null
 			vy = 0.0
+			air_velocity = vel
 		else:
 			ground = g
 			g.on_touch(t)
-			var jump := g.get_jump_velocity()
-			if jump > 0.0:
-				vy = jump
-				grounded = false
-				ground = null
-				just_jumped = true
 	else:
 		vy -= GRAVITY * STEP
 		pos.y += vy * STEP
@@ -127,6 +174,7 @@ func step() -> void:
 				vy = 0.0
 				grounded = true
 				ground = g
+				air_velocity = Vector2.ZERO
 				g.on_touch(t)
 				just_landed = true
 		if not grounded and pos.y <= FALL_LIMIT:
@@ -143,3 +191,9 @@ func step() -> void:
 	# 4) Arrivée.
 	if grounded and level.goal_rect.has_point(p):
 		state = State.WON
+
+
+## Efface les événements « instantanés » (appelé par le jeu après les animations).
+func clear_events() -> void:
+	just_jumped = false
+	just_turned = false

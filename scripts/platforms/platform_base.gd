@@ -1,6 +1,6 @@
 class_name PlatformBase
 extends Node3D
-## Classe de base de tous les éléments d'un niveau (sols, tremplins, pièges…).
+## Classe de base de tous les éléments d'un niveau (sols, plateformes spéciales, pièges…).
 ##
 ## Principe important : la logique de jeu ne dépend PAS des nœuds affichés.
 ## Chaque élément répond à des questions « analytiques » à partir du temps
@@ -49,6 +49,15 @@ func get_rect_at(_t: float) -> Rect2:
 	return rect
 
 
+## État interne à sauvegarder pour une simulation d'essai (null = aucun).
+func get_state() -> Variant:
+	return null
+
+
+func set_state(_state: Variant) -> void:
+	pass
+
+
 ## Zone couvrant toutes les positions possibles de l'élément (sert au
 ## découpage spatial de LevelData).
 func get_bounds() -> Rect2:
@@ -67,11 +76,6 @@ func is_ground_at(p: Vector2, t: float) -> bool:
 ## Vitesse (x, z) transmise au cube posé dessus (plateformes mobiles).
 func get_velocity(_t: float) -> Vector2:
 	return Vector2.ZERO
-
-
-## Vitesse verticale donnée au cube quand il arrive dessus (tremplins). 0 = rien.
-func get_jump_velocity() -> float:
-	return 0.0
 
 
 ## Appelé à chaque pas de simulation où le cube est posé sur cet élément.

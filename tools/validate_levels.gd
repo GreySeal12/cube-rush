@@ -16,8 +16,8 @@ func _init() -> void:
 		return
 
 	print("Validation de %d niveaux (jitter des taps : ±%.2f s)\n" % [levels.size(), LevelValidator.TAP_JITTER])
-	print("Niv | Vitesse | Larg. | Virages | Fenêtre | Durée  | Détails")
-	print("----+---------+-------+---------+---------+--------+--------")
+	print("Niv | Départ | Vitesse | Larg. | Virages | Fenêtre | Expert | 1 doigt | Détails")
+	print("----+--------+---------+-------+---------+---------+--------+---------+--------")
 	var all_ok := true
 	var previous_speed := 0.0
 	for i in levels.size():
@@ -27,9 +27,10 @@ func _init() -> void:
 		var result := LevelValidator.validate(number, cfg, theme)
 		var stats: Dictionary = result.stats
 		var details := _describe(stats)
-		print("%3d | %7.1f | %5d | %7d | %5.2f s | %5.1f s | %s %s" % [
-			number, float(cfg.speed), int(cfg.width), int(stats.turns),
-			result.turn_window, result.time, "OK " if result.ok else "ÉCHEC", details])
+		print("%3d | %-6s | %7.1f | %5d | %7d | %5.2f s | %5.1f s | %6.1f s | %s %s" % [
+			number, String(cfg.get("start", "forward")).left(6), float(cfg.speed), int(cfg.width),
+			int(stats.turns), result.turn_window, result.time, result.careful_time,
+			"OK " if result.ok else "ÉCHEC", details])
 		for e in result.errors:
 			print("      ✗ ", e)
 		if float(cfg.speed) < previous_speed:
