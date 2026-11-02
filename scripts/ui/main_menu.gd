@@ -20,6 +20,7 @@ func _ready() -> void:
 	title.add_theme_color_override("font_shadow_color", Color(0.2, 0.2, 0.4, 0.35))
 	title.add_theme_constant_override("shadow_offset_y", 10)
 	subtitle.add_theme_color_override("font_color", Color(0.18, 0.25, 0.45))
+	subtitle.text = "Un doigt. %d niveaux. Zéro chute ?" % GameManager.level_count()
 	UiStyle.make_secondary(levels_button)
 	play_button.pressed.connect(_on_play)
 	levels_button.pressed.connect(GameManager.go_to_level_select)

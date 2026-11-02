@@ -32,6 +32,38 @@
       "crumble": "#7a5a4a", "special": "#ff8a3d", "moving": "#c9a227",
       "hazard": "#ffd54f", "pillar": "#2a2220", "burst": "#ffb347",
       "lava": true, "lava_color": "#ff5a1f"
+    },
+    "crepuscule": {
+      "bg_top": "#4a5bc4", "bg_bottom": "#ffc2a8", "ambient": "#e6c9d6",
+      "platform_a": "#f08a7e", "platform_b": "#c95f86", "goal": "#ffffff",
+      "pad": "#ffe08a", "pad_accent": "#ffffff",
+      "crumble": "#f7b9a8", "special": "#8fd3ff", "moving": "#b8f0c8",
+      "hazard": "#3a2f6b", "pillar": "#7a4a8f", "burst": "#ffe0d0",
+      "lava": false
+    },
+    "neon_profond": {
+      "bg_top": "#030924", "bg_bottom": "#123a7a", "ambient": "#9fb8e6",
+      "platform_a": "#1fb6ff", "platform_b": "#ff3df2", "goal": "#ffffff",
+      "pad": "#b6ff3d", "pad_accent": "#ffffff",
+      "crumble": "#8fdcff", "special": "#ffe14f", "moving": "#b6ff3d",
+      "hazard": "#ff4f6d", "pillar": "#24157a", "burst": "#8ff6ff",
+      "lava": false
+    },
+    "automne": {
+      "bg_top": "#ffc98a", "bg_bottom": "#fff3e0", "ambient": "#f0d9c0",
+      "platform_a": "#e67e22", "platform_b": "#c0392b", "goal": "#ffffff",
+      "pad": "#ffd54f", "pad_accent": "#ffffff",
+      "crumble": "#f5b97a", "special": "#8bc34a", "moving": "#4dd0e1",
+      "hazard": "#5d4037", "pillar": "#6d4c41", "burst": "#ffcc80",
+      "lava": false
+    },
+    "obsidienne": {
+      "bg_top": "#0b0510", "bg_bottom": "#d81b60", "ambient": "#d6a6c0",
+      "platform_a": "#2b2233", "platform_b": "#463650", "goal": "#ffe08a",
+      "pad": "#ff6e40", "pad_accent": "#fff3c4",
+      "crumble": "#5e4466", "special": "#ff4081", "moving": "#ffab40",
+      "hazard": "#ffd54f", "pillar": "#170f1c", "burst": "#ff80ab",
+      "lava": true, "lava_color": "#ff3d3d"
     }
   },
   "levels": [
@@ -129,6 +161,217 @@
       "pillars": { "chance": 0.2 },
       "spikes": { "row_chance": 0.2, "static_chance": 0.2, "up_time": 0.7 },
       "stars_max_deaths": [3, 8]
+    },
+    {
+      "id": 11, "name": "Crépuscule", "theme": "crepuscule", "seed": 11483,
+      "speed": 5.9, "width": 3, "path_length": 130,
+      "segment_min": 2, "segment_max": 5,
+      "timing_margin": 0.15,
+      "gaps": { "chance": 0.25, "min": 1, "max": 3 },
+      "crumble": { "chance": 0.35, "delay": 0.45 },
+      "spikes": { "row_chance": 0.12, "static_chance": 0.1, "up_time": 0.75 },
+      "stars_max_deaths": [2, 6]
+    },
+    {
+      "id": 12, "name": "Escalier céleste", "theme": "crepuscule", "seed": 12577,
+      "speed": 6.0, "width": 3, "path_length": 135,
+      "segment_min": 0, "segment_max": 2,
+      "timing_margin": 0.15,
+      "gaps": { "chance": 0.1, "min": 1, "max": 2 },
+      "intermittent": { "chance": 0.15, "rows_min": 1, "rows_max": 1, "hidden_time": 0.8, "types": ["retract", "rotate"] },
+      "stars_max_deaths": [2, 6]
+    },
+    {
+      "id": 13, "name": "Grands sauts", "theme": "crepuscule", "seed": 13669,
+      "speed": 6.0, "width": 3, "path_length": 140,
+      "segment_min": 4, "segment_max": 7,
+      "timing_margin": 0.15,
+      "gaps": { "chance": 0.55, "min": 2, "max": 3 },
+      "crumble": { "chance": 0.25, "delay": 0.45 },
+      "stars_max_deaths": [2, 6]
+    },
+    {
+      "id": 14, "name": "Ponts suspendus", "theme": "crepuscule", "seed": 14753,
+      "speed": 6.1, "width": 3, "path_length": 145,
+      "segment_min": 3, "segment_max": 6,
+      "timing_margin": 0.14,
+      "gaps": { "chance": 0.15, "min": 1, "max": 2 },
+      "moving": { "chance": 0.4, "length": 3, "away_time": 0.7, "travel_time": 0.4 },
+      "stars_max_deaths": [2, 7]
+    },
+    {
+      "id": 15, "name": "Tempête", "theme": "crepuscule", "seed": 15857,
+      "speed": 6.2, "width": 3, "path_length": 150,
+      "segment_min": 1, "segment_max": 5,
+      "timing_margin": 0.14,
+      "gaps": { "chance": 0.15, "min": 1, "max": 3 },
+      "crumble": { "chance": 0.3, "delay": 0.45 },
+      "moving": { "chance": 0.15, "length": 2, "away_time": 0.7, "travel_time": 0.4 },
+      "intermittent": { "chance": 0.15, "rows_min": 1, "rows_max": 2, "hidden_time": 0.8, "types": ["retract", "rotate"] },
+      "pillars": { "chance": 0.12 },
+      "spikes": { "row_chance": 0.15, "static_chance": 0.12, "up_time": 0.7 },
+      "stars_max_deaths": [3, 7]
+    },
+    {
+      "id": 16, "name": "Néon fragile", "theme": "neon_profond", "seed": 16931,
+      "speed": 6.2, "width": 2, "path_length": 150,
+      "segment_min": 2, "segment_max": 5,
+      "timing_margin": 0.14,
+      "gaps": { "chance": 0.2, "min": 1, "max": 2 },
+      "crumble": { "chance": 0.7, "delay": 0.4 },
+      "stars_max_deaths": [3, 7]
+    },
+    {
+      "id": 17, "name": "Clignotants", "theme": "neon_profond", "seed": 17029,
+      "speed": 6.3, "width": 3, "path_length": 155,
+      "segment_min": 2, "segment_max": 5,
+      "timing_margin": 0.13,
+      "gaps": { "chance": 0.1, "min": 1, "max": 2 },
+      "intermittent": { "chance": 0.45, "rows_min": 1, "rows_max": 3, "hidden_time": 0.8, "types": ["retract", "rotate"] },
+      "stars_max_deaths": [3, 7]
+    },
+    {
+      "id": 18, "name": "Couloir étroit", "theme": "neon_profond", "seed": 18143,
+      "speed": 6.3, "width": 2, "path_length": 160,
+      "segment_min": 1, "segment_max": 4,
+      "timing_margin": 0.13,
+      "gaps": { "chance": 0.2, "min": 1, "max": 2 },
+      "crumble": { "chance": 0.25, "delay": 0.4 },
+      "moving": { "chance": 0.2, "length": 2, "away_time": 0.7, "travel_time": 0.4 },
+      "stars_max_deaths": [3, 8]
+    },
+    {
+      "id": 19, "name": "Pièges lumineux", "theme": "neon_profond", "seed": 19237,
+      "speed": 6.4, "width": 3, "path_length": 165,
+      "segment_min": 2, "segment_max": 6,
+      "timing_margin": 0.13,
+      "gaps": { "chance": 0.1, "min": 1, "max": 2 },
+      "pillars": { "chance": 0.1 },
+      "spikes": { "row_chance": 0.35, "static_chance": 0.25, "up_time": 0.7 },
+      "stars_max_deaths": [3, 8]
+    },
+    {
+      "id": 20, "name": "Rave", "theme": "neon_profond", "seed": 20341,
+      "speed": 6.5, "width": 3, "path_length": 170,
+      "segment_min": 1, "segment_max": 5,
+      "timing_margin": 0.13,
+      "gaps": { "chance": 0.15, "min": 2, "max": 3 },
+      "crumble": { "chance": 0.3, "delay": 0.4 },
+      "moving": { "chance": 0.15, "length": 2, "away_time": 0.7, "travel_time": 0.4 },
+      "intermittent": { "chance": 0.15, "rows_min": 1, "rows_max": 2, "hidden_time": 0.8, "types": ["retract", "rotate"] },
+      "pillars": { "chance": 0.15 },
+      "spikes": { "row_chance": 0.15, "static_chance": 0.15, "up_time": 0.7 },
+      "stars_max_deaths": [3, 8]
+    },
+    {
+      "id": 21, "name": "Sous-bois", "theme": "automne", "seed": 21433,
+      "speed": 6.5, "width": 3, "path_length": 175,
+      "segment_min": 3, "segment_max": 6,
+      "timing_margin": 0.12,
+      "gaps": { "chance": 0.15, "min": 1, "max": 2 },
+      "pillars": { "chance": 0.35 },
+      "stars_max_deaths": [3, 8]
+    },
+    {
+      "id": 22, "name": "Racines", "theme": "automne", "seed": 22541,
+      "speed": 6.6, "width": 3, "path_length": 180,
+      "segment_min": 1, "segment_max": 4,
+      "timing_margin": 0.12,
+      "gaps": { "chance": 0.1, "min": 1, "max": 2 },
+      "crumble": { "chance": 0.3, "delay": 0.4 },
+      "pillars": { "chance": 0.2 },
+      "spikes": { "row_chance": 0.0, "static_chance": 0.2, "up_time": 0.7 },
+      "stars_max_deaths": [3, 8]
+    },
+    {
+      "id": 23, "name": "Lianes", "theme": "automne", "seed": 23627,
+      "speed": 6.6, "width": 3, "path_length": 185,
+      "segment_min": 2, "segment_max": 5,
+      "timing_margin": 0.12,
+      "gaps": { "chance": 0.1, "min": 2, "max": 3 },
+      "moving": { "chance": 0.3, "length": 3, "away_time": 0.7, "travel_time": 0.4 },
+      "intermittent": { "chance": 0.2, "rows_min": 1, "rows_max": 2, "hidden_time": 0.8, "types": ["retract", "rotate"] },
+      "stars_max_deaths": [3, 9]
+    },
+    {
+      "id": 24, "name": "Clairière piégée", "theme": "automne", "seed": 24733,
+      "speed": 6.7, "width": 3, "path_length": 190,
+      "segment_min": 2, "segment_max": 5,
+      "timing_margin": 0.12,
+      "gaps": { "chance": 0.1, "min": 1, "max": 2 },
+      "intermittent": { "chance": 0.15, "rows_min": 1, "rows_max": 2, "hidden_time": 0.75, "types": ["retract", "rotate"] },
+      "pillars": { "chance": 0.15 },
+      "spikes": { "row_chance": 0.3, "static_chance": 0.15, "up_time": 0.7 },
+      "stars_max_deaths": [4, 9]
+    },
+    {
+      "id": 25, "name": "Forêt profonde", "theme": "automne", "seed": 25841,
+      "speed": 6.8, "width": 3, "path_length": 200,
+      "segment_min": 1, "segment_max": 5,
+      "timing_margin": 0.12,
+      "gaps": { "chance": 0.15, "min": 2, "max": 3 },
+      "crumble": { "chance": 0.35, "delay": 0.4 },
+      "moving": { "chance": 0.15, "length": 3, "away_time": 0.7, "travel_time": 0.4 },
+      "intermittent": { "chance": 0.15, "rows_min": 1, "rows_max": 2, "hidden_time": 0.75, "types": ["retract", "rotate"] },
+      "pillars": { "chance": 0.15 },
+      "spikes": { "row_chance": 0.15, "static_chance": 0.15, "up_time": 0.7 },
+      "stars_max_deaths": [4, 9]
+    },
+    {
+      "id": 26, "name": "Cendres", "theme": "obsidienne", "seed": 26947,
+      "speed": 6.8, "width": 3, "path_length": 205,
+      "segment_min": 2, "segment_max": 5,
+      "timing_margin": 0.11,
+      "gaps": { "chance": 0.25, "min": 2, "max": 3 },
+      "crumble": { "chance": 0.6, "delay": 0.38 },
+      "stars_max_deaths": [4, 9]
+    },
+    {
+      "id": 27, "name": "Rivière de lave", "theme": "obsidienne", "seed": 27059,
+      "speed": 6.9, "width": 3, "path_length": 215,
+      "segment_min": 2, "segment_max": 5,
+      "timing_margin": 0.11,
+      "gaps": { "chance": 0.2, "min": 2, "max": 3 },
+      "moving": { "chance": 0.3, "length": 3, "away_time": 0.65, "travel_time": 0.4 },
+      "spikes": { "row_chance": 0.1, "static_chance": 0.15, "up_time": 0.7 },
+      "stars_max_deaths": [4, 10]
+    },
+    {
+      "id": 28, "name": "Obsidienne", "theme": "obsidienne", "seed": 28163,
+      "speed": 6.9, "width": 3, "path_length": 225,
+      "segment_min": 0, "segment_max": 3,
+      "timing_margin": 0.11,
+      "gaps": { "chance": 0.1, "min": 1, "max": 2 },
+      "intermittent": { "chance": 0.25, "rows_min": 1, "rows_max": 2, "hidden_time": 0.75, "types": ["retract", "rotate"] },
+      "pillars": { "chance": 0.2 },
+      "spikes": { "row_chance": 0.15, "static_chance": 0.15, "up_time": 0.65 },
+      "stars_max_deaths": [4, 10]
+    },
+    {
+      "id": 29, "name": "Éruption", "theme": "obsidienne", "seed": 29269,
+      "speed": 7.0, "width": 3, "path_length": 240,
+      "segment_min": 1, "segment_max": 5,
+      "timing_margin": 0.1,
+      "gaps": { "chance": 0.15, "min": 2, "max": 3 },
+      "crumble": { "chance": 0.4, "delay": 0.38 },
+      "moving": { "chance": 0.15, "length": 3, "away_time": 0.65, "travel_time": 0.4 },
+      "intermittent": { "chance": 0.15, "rows_min": 1, "rows_max": 2, "hidden_time": 0.75, "types": ["retract", "rotate"] },
+      "pillars": { "chance": 0.15 },
+      "spikes": { "row_chance": 0.15, "static_chance": 0.2, "up_time": 0.65 },
+      "stars_max_deaths": [5, 10]
+    },
+    {
+      "id": 30, "name": "Cœur ardent", "theme": "obsidienne", "seed": 30373,
+      "speed": 7.0, "width": 3, "path_length": 260,
+      "segment_min": 0, "segment_max": 5,
+      "timing_margin": 0.1,
+      "gaps": { "chance": 0.18, "min": 2, "max": 3 },
+      "crumble": { "chance": 0.45, "delay": 0.36 },
+      "moving": { "chance": 0.17, "length": 3, "away_time": 0.6, "travel_time": 0.4 },
+      "intermittent": { "chance": 0.17, "rows_min": 1, "rows_max": 3, "hidden_time": 0.75, "types": ["retract", "rotate"] },
+      "pillars": { "chance": 0.2 },
+      "spikes": { "row_chance": 0.18, "static_chance": 0.2, "up_time": 0.65 },
+      "stars_max_deaths": [5, 12]
     }
   ]
 }

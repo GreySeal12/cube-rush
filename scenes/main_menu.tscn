@@ -50,7 +50,7 @@ horizontal_alignment = 1
 [node name="Subtitle" type="Label" parent="Center"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 34
-text = "Un doigt. Dix niveaux. Zéro chute ?"
+text = "Un doigt. 30 niveaux. Zéro chute ?"
 horizontal_alignment = 1
 autowrap_mode = 3
 

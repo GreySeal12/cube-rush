@@ -2,7 +2,21 @@
 
 Jeu d'arcade 3D low-poly pour mobile : un cube kawaii avance tout seul sur des
 plateformes en zigzag, **un tap change sa direction**. Il faut rester sur le
-chemin jusqu'à la couronne dorée. 10 niveaux, 4 mondes, 100 % hors ligne.
+chemin jusqu'à la couronne dorée. 30 niveaux, 8 mondes, 100 % hors ligne.
+
+| Niveaux | Monde | Ce qui change |
+|---|---|---|
+| 1-3 | Ciel | Virages, puis trous avec tremplin, virages serrés |
+| 4-6 | Néon | Sol fragile, ponts mobiles, plateformes intermittentes |
+| 7-8 | Forêt | Piliers, pointes |
+| 9-10 | Volcan | Vitesse en hausse, mécaniques combinées, lave |
+| 11-15 | Crépuscule | Escalier de virages, grands sauts, ponts longs, tempête |
+| 16-20 | Néon profond | Couloirs de 2 cases, clignotants, pièges lumineux |
+| 21-25 | Automne | Sous-bois de piliers, racines, lianes, clairière piégée |
+| 26-30 | Obsidienne | Cendres, rivière de lave, finale à 7 cases/s sur 260 cases |
+
+Vitesse : 3,5 → 7 cases/s. Durée d'un parcours parfait : 17 s (niveau 1)
+→ 38 s (niveau 30). Tolérance des pièges synchronisés : 0,25 → 0,10 s.
 
 - Moteur : **Godot 4.7.2** (GDScript uniquement), renderer **Mobile**
 - Cible : **Android** (arm64-v8a, minSdk 24), portrait uniquement
@@ -83,6 +97,8 @@ Niv | Vitesse | Larg. | Virages | Fenêtre | Durée  | Détails
   1 |     3.5 |     3 |       6 |  0.86 s |  17.5 s | OK
   ...
  10 |     5.8 |     3 |      17 |  0.52 s |  22.3 s | OK  gaps=4, max_gap=3, crumble=34, ...
+  ...
+ 30 |     7.0 |     3 |      36 |  0.43 s |  37.9 s | OK  gaps=6, max_gap=3, crumble=47, ...
 RÉSULTAT : tous les niveaux sont jouables.
 ```
 
@@ -165,7 +181,7 @@ Dans **Projet > Exporter > Android > Package > Unique Name** (ou la ligne
 ```
 project.godot            Paramètres (portrait, renderer Mobile, autoloads)
 export_presets.cfg       Preset d'export Android
-data/levels.json         LES 10 NIVEAUX + les 4 palettes de couleurs
+data/levels.json         LES 30 NIVEAUX + les 8 palettes de couleurs
 scenes/
   main_menu.tscn         Menu principal
   level_select.tscn      Grille des niveaux
@@ -233,7 +249,7 @@ modification, relancez la validation.
 | `pillars` | Piliers sur les côtés : `chance` par rangée. |
 | `spikes` | `row_chance` (rangées de pointes périodiques, part des segments), `static_chance` (pointes fixes sur les côtés, par rangée), `up_time` (s sorties). |
 | `stars_max_deaths` | `[a, b]` : 3 étoiles si chutes ≤ a, 2 étoiles si chutes ≤ b, sinon 1. |
-| `theme` | `ciel`, `neon`, `foret` ou `volcan` (palettes dans `themes`). |
+| `theme` | `ciel`, `neon`, `foret`, `volcan`, `crepuscule`, `neon_profond`, `automne` ou `obsidienne` (palettes dans `themes`). |
 
 La somme des `chance` des particularités (`gaps`, `moving`, `intermittent`,
 `spikes.row_chance`) doit rester inférieure à 1 (un segment n'a qu'une
@@ -251,6 +267,7 @@ Autres réglages, dans le code (constantes en haut des fichiers) :
 | `PlayerMotor.HAZARD_HALF` | Taille de la « boîte de collision » contre les pièges (plus petit = plus indulgent). |
 | `CameraFollow.view_width` | Zoom de la caméra (largeur visible en cases). |
 | `game.gd : RESTART_DELAY` | Durée de l'animation de chute avant redémarrage. |
+| `LevelGenerator.SIDE_TRAP_TOLERANCE` | Décalage latéral toléré (en secondes de retard au virage) face aux piliers et pointes de côté : le couloir libre s'élargit avec la vitesse. |
 | `LevelValidator.*` | Exigences du validateur (fenêtre de virage minimale, imprécision simulée…). |
 
 ### Ajouter un niveau
@@ -266,8 +283,9 @@ et le déblocage s'adaptent automatiquement au nombre de niveaux.
 - Une seule lumière directionnelle, **aucune ombre dynamique**, pas de
   post-traitement, éclairage calculé par sommet, maillages et matériaux partagés.
 - Les rangées de sol consécutives sont fusionnées en un seul bloc
-  (≈ 15 à 110 maillages par niveau) ; seuls les éléments animés proches du
-  cube sont mis à jour.
+  (≈ 15 à 200 maillages par niveau) ; seuls les éléments animés proches du
+  cube sont mis à jour, et le cube ne teste que les éléments de sa « tranche »
+  de parcours (découpage spatial dans `LevelData`).
 - Anti-aliasing MSAA 2× (`anti_aliasing/quality/msaa_3d`) : passez-le à
   « Disabled » si un téléphone peine.
 - Si le renderer Mobile pose problème sur un appareil, passez en
@@ -278,7 +296,8 @@ et le déblocage s'adaptent automatiquement au nombre de niveaux.
 
 Vérifié dans l'environnement de développement (Linux, sans téléphone) :
 - Import du projet et exécution sans erreur avec Godot 4.7.2.
-- Validation des 10 niveaux (déterminisme + simulations du bot) : OK.
+- Validation des 30 niveaux (déterminisme + simulations du bot) : OK.
+- Les 30 niveaux joués de bout en bout par le bot dans la vraie scène de jeu.
 - Rendu du jeu, des menus et des 4 thèmes avec le renderer Mobile (Vulkan
   logiciel), sur des écrans 720×1280 et 720×1560.
 - Parties complètes jouées automatiquement, chutes et redémarrages.

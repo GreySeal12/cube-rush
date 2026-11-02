@@ -3,6 +3,7 @@ extends Control
 
 @onready var background: TextureRect = $Background
 @onready var margin: MarginContainer = $Margin
+@onready var scroll: ScrollContainer = $Margin/Column/Scroll
 @onready var grid: GridContainer = $Margin/Column/Scroll/Grid
 @onready var back_button: Button = $Margin/Column/Header/BackButton
 @onready var title: Label = $Margin/Column/Header/Title
@@ -24,6 +25,10 @@ func _ready() -> void:
 	margin.add_theme_constant_override("margin_bottom", 24 + int(safe.bottom))
 
 	star_count.text = "%d/%d" % [SaveManager.total_stars(), GameManager.level_count() * 3]
+	# Au doigt : un petit glissement fait défiler la grille au lieu d'appuyer.
+	scroll.scroll_deadzone = 16
+	var focus_level := GameManager.next_level_to_play()
+	var focus_button: Control = null
 	for n in range(1, GameManager.level_count() + 1):
 		var cfg := LevelDatabase.get_level(n)
 		var world := LevelDatabase.get_theme(String(cfg.get("theme", "ciel")))
@@ -32,6 +37,13 @@ func _ready() -> void:
 			world.get("platform_a", UiStyle.SECONDARY))
 		button.level_chosen.connect(GameManager.start_level)
 		grid.add_child(button)
+		if n == focus_level:
+			focus_button = button
+
+	# Avec 30 niveaux la grille défile : on amène le prochain niveau à l'écran.
+	if focus_button != null:
+		await get_tree().process_frame
+		scroll.ensure_control_visible(focus_button)
 
 
 func _notification(what: int) -> void:
