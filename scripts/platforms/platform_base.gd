@@ -49,6 +49,12 @@ func get_rect_at(_t: float) -> Rect2:
 	return rect
 
 
+## Zone couvrant toutes les positions possibles de l'élément (sert au
+## découpage spatial de LevelData).
+func get_bounds() -> Rect2:
+	return rect
+
+
 ## L'élément est-il « praticable » au temps t ?
 func is_solid(_t: float) -> bool:
 	return true

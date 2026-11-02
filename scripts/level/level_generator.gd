@@ -28,6 +28,13 @@ const DIR_Z := 1   # le cube avance vers -Z
 ## pour retomber au milieu de la première rangée après le trou.
 const JUMP_EXTRA_DISTANCE := 1.5
 
+## Tolérance minimale (s) garantie face aux piliers et pointes latéraux : un
+## virage pris jusqu'à ce retard (ou cette avance) ne touche jamais un piège
+## de côté. Le couloir libre s'élargit donc avec la vitesse du niveau.
+const SIDE_TRAP_TOLERANCE := 0.1
+## Marge habituelle entre le bord d'une case et un pilier.
+const PILLAR_INSET := 0.25
+
 
 static func generate(cfg: Dictionary, theme: Dictionary) -> LevelData:
 	var rng := RandomNumberGenerator.new()
@@ -355,14 +362,37 @@ static func _add_side_traps(data: LevelData, block: Vector2, dir: int, kinds: Ar
 			continue
 		var lane := 0 if rng.randf() < 0.5 else w - 1
 		var cell := _cell_rect(block, dir, i, lane, w)
+		# Distance minimale entre le centre du chemin et la partie mortelle du
+		# piège : décalage latéral toléré + demi-largeur du cube.
+		var clearance := SIDE_TRAP_TOLERANCE * data.speed + PlayerMotor.HAZARD_HALF
+		# Distance entre le centre du chemin et le bord intérieur de la case.
+		var lane_edge := w * 0.5 - 1.0
 		if roll < pillar_chance:
+			var trim := maxf(clearance - lane_edge - PILLAR_INSET, 0.0)
 			var p := PillarTrap.new()
-			p.setup(cell.grow(-0.25), _color(data, "pillar"))
+			p.setup(_trim_inner(cell.grow(-PILLAR_INSET), dir, lane, trim), _color(data, "pillar"))
 			p.top_color = _color(data, "platform_b")
 			_register(data, p)
 			data.stats.pillars = data.stats.get("pillars", 0) + 1
 		else:
-			_add_spikes(data, cell, false, w)
+			var trim := maxf(clearance - lane_edge - SpikeTrap.INSET, 0.0)
+			_add_spikes(data, _trim_inner(cell, dir, lane, trim), false, w)
+
+
+## Rogne `amount` sur le côté de la case tourné vers le centre du chemin.
+static func _trim_inner(cell: Rect2, dir: int, lane: int, amount: float) -> Rect2:
+	var r := cell
+	if dir == DIR_X:
+		# Couloir 0 = z le plus grand : son côté intérieur est vers les z petits.
+		if lane == 0:
+			r.position.y += amount
+		r.size.y -= amount
+	else:
+		# Couloir 0 = x le plus petit : son côté intérieur est vers les x grands.
+		if lane != 0:
+			r.position.x += amount
+		r.size.x -= amount
+	return r
 
 
 ## Emprise d'une case : rangée i, couloir latéral `lane` (0 = côté arrière).

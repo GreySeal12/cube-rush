@@ -30,9 +30,46 @@ var turn_points: Array[Vector2] = []
 var stats: Dictionary = {}
 
 
+# --- Découpage spatial -------------------------------------------------------
+# Plutôt que de tester tous les éléments à chaque pas, on les range par
+# « tranches » de progression (x - z) : le cube ne teste que la tranche où il
+# se trouve. Indispensable pour les longs niveaux sur les petits téléphones.
+const BUCKET_SIZE := 4.0
+
+var _ground_buckets: Dictionary = {}
+var _obstacle_buckets: Dictionary = {}
+var _buckets_ready := false
+
+
+func _build_buckets() -> void:
+	_fill_buckets(platforms, _ground_buckets)
+	_fill_buckets(obstacles, _obstacle_buckets)
+	_buckets_ready = true
+
+
+## Range chaque élément dans toutes les tranches que son emprise touche
+## (l'ordre d'origine est conservé à l'intérieur d'une tranche).
+func _fill_buckets(items: Array[PlatformBase], buckets: Dictionary) -> void:
+	for item in items:
+		var b := item.get_bounds()
+		var lo := _bucket_of(progress_of(Vector2(b.position.x, b.end.y)))
+		var hi := _bucket_of(progress_of(Vector2(b.end.x, b.position.y)))
+		for k in range(lo, hi + 1):
+			if not buckets.has(k):
+				buckets[k] = [] as Array[PlatformBase]
+			buckets[k].append(item)
+
+
+func _bucket_of(progress: float) -> int:
+	return floori(progress / BUCKET_SIZE)
+
+
 ## Renvoie l'élément qui porte le point p (x, z) au temps t, ou null (vide).
 func ground_at(p: Vector2, t: float) -> PlatformBase:
-	for plat in platforms:
+	if not _buckets_ready:
+		_build_buckets()
+	var candidates: Array = _ground_buckets.get(_bucket_of(progress_of(p)), [])
+	for plat in candidates:
 		if plat.is_ground_at(p, t):
 			return plat
 	return null
@@ -40,9 +77,13 @@ func ground_at(p: Vector2, t: float) -> PlatformBase:
 
 ## Vrai si un piège ou un obstacle touche le cube.
 func is_deadly(center: Vector3, half: float, t: float) -> bool:
-	for obs in obstacles:
-		if obs.is_deadly(center, half, t):
-			return true
+	if not _buckets_ready:
+		_build_buckets()
+	var q := progress_of(Vector2(center.x, center.z))
+	for k in range(_bucket_of(q - 2.0 * half), _bucket_of(q + 2.0 * half) + 1):
+		for obs in _obstacle_buckets.get(k, []):
+			if obs.is_deadly(center, half, t):
+				return true
 	return false
 
 

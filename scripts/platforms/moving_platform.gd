@@ -19,6 +19,12 @@ func _amount(t: float) -> float:
 	return smoothstep(0.0, 1.0, cycle_amount(t))
 
 
+func get_bounds() -> Rect2:
+	var away := rect
+	away.position += displacement
+	return rect.merge(away)
+
+
 func get_rect_at(t: float) -> Rect2:
 	var r := rect
 	r.position += displacement * _amount(t)

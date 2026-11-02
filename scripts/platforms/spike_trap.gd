@@ -39,12 +39,17 @@ func build_visual() -> void:
 		MeshFactory.material(plate_color))
 	plate.position.y = 0.01
 	add_child(plate)
-	var cells_x := int(round(rect.size.x))
-	var cells_z := int(round(rect.size.y))
+	# Les pointes latérales peuvent être rognées (cases de moins d'1×1) :
+	# chaque grappe est mise à l'échelle de sa case pour coller à la zone mortelle.
+	var cells_x := maxi(int(round(rect.size.x)), 1)
+	var cells_z := maxi(int(round(rect.size.y)), 1)
+	var cell := Vector2(rect.size.x / cells_x, rect.size.y / cells_z)
 	for ix in cells_x:
 		for iz in cells_z:
 			var s := MeshFactory.instance(MeshFactory.spike_cluster(HEIGHT), MeshFactory.material(color))
-			s.position = Vector3(ix + 0.5 - rect.size.x * 0.5, 0.0, iz + 0.5 - rect.size.y * 0.5)
+			s.position = Vector3((ix + 0.5) * cell.x - rect.size.x * 0.5, 0.0,
+				(iz + 0.5) * cell.y - rect.size.y * 0.5)
+			s.scale = Vector3(cell.x, 1.0, cell.y)
 			add_child(s)
 			_spikes.append(s)
 
